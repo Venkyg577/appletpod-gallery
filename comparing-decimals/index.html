@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Comparing Decimal Numbers</title>
+    <link rel="stylesheet" href="css/main.css" />
+  </head>
+  <body>
+    <div class="responsive-container">
+      <div class="responsive-wrapper" id="app"></div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="js/sound.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/mini-react.js"></script>
+    <script src="js/decimalPlaceValue.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+      window.addEventListener('load', function () {
+        if (!window.appData) {
+          setTimeout(function () {
+            if (window.appData && typeof initializeApp === 'function') initializeApp();
+          }, 200);
+          return;
+        }
+        if (typeof initializeResponsiveScaling === 'function') initializeResponsiveScaling();
+        if (typeof initializeApp === 'function') initializeApp();
+      });
+    </script>
+  </body>
+</html>

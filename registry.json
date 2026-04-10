@@ -1,0 +1,22 @@
+[
+  {
+    "slug": "comparing-decimals",
+    "title": "Comparing Decimals",
+    "description": "Visually compare decimal numbers on a number line. Drag, place, and build intuition for decimal place value.",
+    "category": "math",
+    "grade": "grade-4-5",
+    "tags": ["decimals", "number-line", "place-value", "comparison"],
+    "status": "live",
+    "demoUrl": "https://demos.appletpod.com/comparing-decimals/"
+  },
+  {
+    "slug": "parallel-series-circuits",
+    "title": "Parallel & Series Circuits",
+    "description": "Build and test parallel and series circuits interactively. Observe how current and voltage behave in each configuration.",
+    "category": "science",
+    "grade": "grade-7-8",
+    "tags": ["circuits", "electricity", "physics", "current", "voltage"],
+    "status": "live",
+    "demoUrl": "https://demos.appletpod.com/parallel-series-circuits/"
+  }
+]

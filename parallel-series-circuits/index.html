@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parallel &amp; Series Circuits</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700;800&amp;display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles/main.css" />
+</head>
+<body>
+  <div class="responsive-container">
+    <div class="responsive-wrapper" id="root"></div>
+  </div>
+  <script>
+    function updateScaleFactor(){
+      var scaleW = window.innerWidth / 1920;
+      var scaleH = window.innerHeight / 1080;
+      var scale = Math.min(scaleW, scaleH);
+      document.documentElement.style.setProperty('--scaleFactor', scale);
+    }
+    updateScaleFactor();
+    window.addEventListener('resize', updateScaleFactor);
+    window.addEventListener('orientationchange', function(){ setTimeout(updateScaleFactor, 100); });
+  </script>
+  <script src="./utils/mini-react.js"></script>
+  <script src="./utils/i18n.js"></script>
+  <script src="./hooks/useResponsiveLayout.js"></script>
+  <script src="./hooks/useAudioFeedback.js"></script>
+  <script src="./hooks/useAppletState.js"></script>
+  <script src="./components/shared/Battery.jsx"></script>
+  <script src="./components/shared/CircuitBulb.jsx"></script>
+  <script src="./components/shared/ToggleSwitch.jsx"></script>
+  <script src="./components/BulbCountControl.jsx"></script>
+  <script src="./components/ParallelCircuitPanel.jsx"></script>
+  <script src="./components/SeriesCircuitPanel.jsx"></script>
+  <script src="./components/AppletContainer.jsx"></script>
+  <script src="./data.js"></script>
+  <script>
+    (function(){
+      var root = document.getElementById('root');
+      if (root) {
+        root.innerHTML = '';
+        window.MiniReact.render(window.MiniReact.h(window.AppletContainer, { appData: window.appData }), root);
+      }
+    })();
+  </script>
+</body>
+</html>

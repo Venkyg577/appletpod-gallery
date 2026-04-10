@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AppletPod — Interactive Learning Demos</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0f0f0f;
+      color: #f0f0f0;
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 40px 24px 32px;
+      border-bottom: 1px solid #222;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .brand-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #E87B35;
+      flex-shrink: 0;
+    }
+
+    .brand-name {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #E87B35;
+    }
+
+    header p {
+      font-size: 0.9rem;
+      color: #888;
+      margin-left: 26px;
+    }
+
+    main {
+      padding: 40px 24px;
+      max-width: 900px;
+    }
+
+    h2 {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #555;
+      margin-bottom: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: #181818;
+      border: 1px solid #252525;
+      border-radius: 10px;
+      padding: 22px 24px;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .card:hover {
+      border-color: #E87B35;
+      background: #1e1a17;
+    }
+
+    .card-meta {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .tag-category { background: #1f2937; color: #93c5fd; }
+    .tag-grade    { background: #1a1a2e; color: #a78bfa; }
+    .tag-status-live   { background: #052e16; color: #4ade80; }
+    .tag-status-draft  { background: #2d1b00; color: #fbbf24; }
+
+    .card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #f0f0f0;
+    }
+
+    .card p {
+      font-size: 0.85rem;
+      color: #888;
+      line-height: 1.5;
+    }
+
+    .card-arrow {
+      margin-top: 16px;
+      font-size: 0.8rem;
+      color: #E87B35;
+      font-weight: 500;
+    }
+
+    footer {
+      padding: 32px 24px;
+      border-top: 1px solid #1a1a1a;
+      color: #444;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-dot"></div>
+      <span class="brand-name">AppletPod</span>
+    </div>
+    <p>Interactive learning demos — standalone, embeddable, offline-capable.</p>
+  </header>
+
+  <main>
+    <h2>All Applets</h2>
+    <div class="grid" id="applet-grid"></div>
+  </main>
+
+  <footer>
+    &copy; 2026 AppletPod &mdash; demos.appletpod.com
+  </footer>
+
+  <script>
+    fetch('/registry.json')
+      .then(r => r.json())
+      .then(applets => {
+        const grid = document.getElementById('applet-grid');
+        grid.innerHTML = applets.map(a => `
+          <a class="card" href="/${a.slug}/">
+            <div class="card-meta">
+              <span class="tag tag-category">${a.category}</span>
+              <span class="tag tag-grade">${a.grade}</span>
+              <span class="tag tag-status-${a.status}">${a.status}</span>
+            </div>
+            <h3>${a.title}</h3>
+            <p>${a.description}</p>
+            <div class="card-arrow">Open demo &rarr;</div>
+          </a>
+        `).join('');
+      })
+      .catch(() => {
+        document.getElementById('applet-grid').innerHTML =
+          '<p style="color:#555;font-size:.85rem">Could not load registry.</p>';
+      });
+  </script>
+</body>
+</html>
