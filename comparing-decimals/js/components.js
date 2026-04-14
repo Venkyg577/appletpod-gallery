@@ -175,12 +175,20 @@ function ColoredDecimalString(props) {
 }
 
 function PairPicker(props) {
-  const { problems, selectedIndex, onChangeIndex, showOperator, operator, pulseDecimalsActive, highlightPlace, stripOpChar, completedByIndex } = props;
+  const { problems, selectedIndex, onChangeIndex, showOperator, operator, pulseDecimalsActive, highlightPlace, stripOpChar, completedByIndex, showScrollHint, onFirstInteract } = props;
   const doneMap = completedByIndex || {};
   const visRadius = 3;
   const items = [];
+  var hinted = false;
+
+  function markInteracted() {
+    if (hinted) return;
+    hinted = true;
+    if (onFirstInteract) onFirstInteract();
+  }
 
   function nav(delta) {
+    markInteracted();
     const next = Math.max(0, Math.min(problems.length - 1, selectedIndex + delta));
     onChangeIndex(next);
   }
@@ -251,7 +259,10 @@ function PairPicker(props) {
         h('div', {
           key: 'p' + idx,
           className: cls,
-          onClick: function () { onChangeIndex(idx); },
+          onClick: function () {
+            markInteracted();
+            onChangeIndex(idx);
+          },
         }, inner)
       );
     }
@@ -263,11 +274,22 @@ function PairPicker(props) {
       className: 'pair-picker',
       onWheel: function (e) {
         e.preventDefault();
+        markInteracted();
         if (e.deltaY > 0) nav(1);
         else if (e.deltaY < 0) nav(-1);
       },
     },
     h('div', { className: 'pair-picker-window' }, items),
+    showScrollHint ? h(
+      'div',
+      { className: 'gesture-hint gesture-hint--scroll', 'aria-hidden': 'true' },
+      h('img', {
+        className: 'gesture-hint-img',
+        src: 'assets/finger swipe up.gif',
+        alt: '',
+        draggable: 'false',
+      })
+    ) : null,
     h('div', { className: 'scroll-hint interactive-text' }, 'Scroll to choose')
   );
 }
@@ -318,9 +340,6 @@ function OperatorPicker(props) {
 
 function HighlightedNumber(props) {
   const { value, highlightPlaceIndex } = props;
-  if (highlightPlaceIndex == null) {
-    return h('span', { className: 'interactive-text' }, value);
-  }
   const s = DPV().getSlots(value);
   const places = ['tens', 'ones', 'tenths', 'hundredths', 'thousandths'];
   const colorMap = {
@@ -334,11 +353,17 @@ function HighlightedNumber(props) {
   // Build: tens ones . tenths hundredths thousandths
   for (var i = 0; i < 5; i++) {
     if (i === 2) {
-      parts.push(h('span', { key: 'dot' }, '.'));
+      parts.push(
+        h(
+          'span',
+          { key: 'dot', className: 'decimal-point-char', 'aria-hidden': 'true' },
+          h('span', { className: 'decimal-point-dot' })
+        )
+      );
     }
     var ch = s.display[i];
     if (ch === '' && i === 0) { ch = '\u00A0'; }
-    if (i === highlightPlaceIndex) {
+    if (highlightPlaceIndex != null && i === highlightPlaceIndex) {
       parts.push(h('span', {
         key: 'p' + i,
         className: 'highlight-digit',

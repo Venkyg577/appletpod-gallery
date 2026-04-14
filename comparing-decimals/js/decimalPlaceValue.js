@@ -143,7 +143,15 @@
     const diff = firstDifferingPlace(a, b);
     if (!diff) return [];
     const steps = [];
+    let startPlaceIndex = 0;
     for (let pi = 0; pi <= diff.placeIndex; pi++) {
+      const atPlace = digitsAtPlaceIndex(a, b, pi);
+      if (!(atPlace.digitA === '' && atPlace.digitB === '')) {
+        startPlaceIndex = pi;
+        break;
+      }
+    }
+    for (let pi = startPlaceIndex; pi <= diff.placeIndex; pi++) {
       steps.push(Object.assign({ placeIndex: pi }, digitsAtPlaceIndex(a, b, pi)));
     }
     return steps;

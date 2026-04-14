@@ -71,6 +71,8 @@ let appState = {
   isEqualComparison: false,
   completedByIndex: {},
   pickerPulseDecimals: false,
+  pickerScrollHintVisible: true,
+  compareTapHintVisible: true,
 };
 
 function currentProblem() {
@@ -293,6 +295,11 @@ function changePracticeIndex(idx) {
   });
 }
 
+function dismissPickerScrollHint() {
+  if (!appState.pickerScrollHintVisible) return;
+  setState({ pickerScrollHintVisible: false });
+}
+
 function comparisonStepsForCurrent() {
   const prob = currentProblem();
   return window.DecimalPlaceValue.comparisonStepsUntilDiff(prob.a, prob.b);
@@ -302,6 +309,7 @@ function beginComparePractice() {
   const prob = currentProblem();
   clearScheduled();
   window.sound && window.sound.playClickSound();
+  appState.compareTapHintVisible = false;
   if (prob.extended_only) {
     setState({ phase: 'extended' });
     return;
@@ -417,6 +425,8 @@ function restartFromSummary() {
     workedStepIndex: 0,
     completedByIndex: {},
     isEqualComparison: false,
+    pickerScrollHintVisible: true,
+    compareTapHintVisible: true,
   });
 }
 
@@ -446,13 +456,52 @@ function buildComparisonStrip(opts) {
     { className: stripClass },
     createElement('div', {
       className: boxAClass,
+      'data-drag-key': dragFirst ? 'first' : null,
       onPointerDown: dragFirst ? function (e) { attachNumberBoxDrag('first', e); } : null,
     }, numAContent),
     createElement('div', { className: slotClass }, slotContent),
     createElement('div', {
       className: boxBClass,
+      'data-drag-key': dragSecond ? 'second' : null,
       onPointerDown: dragSecond ? function (e) { attachNumberBoxDrag('second', e); } : null,
     }, numBContent)
+  );
+}
+
+function buildGestureHint(type, extraClass) {
+  var src = type === 'tap'
+    ? 'assets/finger tap.gif'
+    : type === 'drag'
+      ? 'assets/finger swipe right.gif'
+      : 'assets/finger swipe up.gif';
+  var cls = 'gesture-hint gesture-hint--' + type + (extraClass ? ' ' + extraClass : '');
+  return createElement(
+    'div',
+    { className: cls, 'aria-hidden': 'true' },
+    createElement('img', {
+      className: 'gesture-hint-img',
+      src: src,
+      alt: '',
+      draggable: 'false',
+    })
+  );
+}
+
+function buildGestureFlight(kind, sourceKey, targetRow) {
+  return createElement(
+    'div',
+    {
+      className: 'gesture-flight gesture-flight--' + kind,
+      'data-source-key': sourceKey,
+      'data-target-row': String(targetRow),
+      'aria-hidden': 'true',
+    },
+    createElement('img', {
+      className: 'gesture-flight-img',
+      src: kind === 'drag' ? 'assets/finger swipe right.gif' : 'assets/finger swipe up.gif',
+      alt: '',
+      draggable: 'false',
+    })
   );
 }
 
@@ -495,7 +544,7 @@ function buildIntro() {
     const beginCol = createElement(
       'div',
       { className: 'intro-begin-wrap' },
-      createElement('div', { className: 'tap-begin-label interactive-text' }, t('content-ui.instructions.tap_to_begin')),
+      buildGestureHint('tap', 'gesture-hint--begin'),
       NextChevronCmp({ pulsate: true, onClick: introNext })
     );
     const mid = createElement(
@@ -564,12 +613,17 @@ function buildIntro() {
     introBelowGrid = createElement(
       'div',
       { className: 'intro-compare-zone' },
-      OperatorPickerCmp({
-        onPick: handleIntroOperatorPick,
-        disabled: false,
-        wrongSym: appState.wrongSym,
-        wrongKey: appState.operatorTeeterNonce,
-      })
+      createElement(
+        'div',
+        { className: 'operator-picker-overlay-wrap' },
+        OperatorPickerCmp({
+          onPick: handleIntroOperatorPick,
+          disabled: false,
+          wrongSym: appState.wrongSym,
+          wrongKey: appState.operatorTeeterNonce,
+        }),
+        buildGestureHint('tap', 'gesture-hint--operator')
+      )
     );
   } else if (sub === 6 || sub === 7) {
     introBelowGrid = createElement(
@@ -615,7 +669,17 @@ function buildIntro() {
 
   const mid = createElement('div', { className: 'intro-mid' }, midInner);
 
-  return createElement('div', { className: 'intro-shell' }, header, mid, footer, dragGhost);
+  return createElement(
+    'div',
+    { className: 'intro-shell' },
+    header,
+    mid,
+    footer,
+    dragGhost,
+    (drag1 || drag2) && !appState.dragging
+      ? buildGestureFlight('drag', drag1 ? 'first' : 'second', drag1 ? 0 : 1)
+      : null
+  );
 }
 
 function compareSummary(prob) {
@@ -694,6 +758,8 @@ function buildPractice() {
     highlightPlace: practiceHighlightPlace,
     stripOpChar: stripOpChar,
     completedByIndex: appState.completedByIndex,
+    showScrollHint: appState.pickerScrollHintVisible,
+    onFirstInteract: dismissPickerScrollHint,
   });
 
   const compareDisabled = appState.practiceSub !== 'picker';
@@ -716,15 +782,20 @@ function buildPractice() {
       { className: 'intro-compare-zone' },
       createElement(
         'div',
-        { className: 'footer-actions' },
-        AppletButtonCmp({
-          label: t('standard-ui.buttons.compare'),
-          disabled: compareDisabled,
-          impending: showCompareImpending ? 'clickNext' : '',
-          onClick: function () {
-            if (!compareDisabled) beginComparePractice();
-          },
-        })
+        { className: 'compare-button-overlay-wrap' },
+        createElement(
+          'div',
+          { className: 'footer-actions' },
+          AppletButtonCmp({
+            label: t('standard-ui.buttons.compare'),
+            disabled: compareDisabled,
+            impending: showCompareImpending ? 'clickNext' : '',
+            onClick: function () {
+              if (!compareDisabled) beginComparePractice();
+            },
+          })
+        ),
+        appState.compareTapHintVisible ? buildGestureHint('tap', 'gesture-hint--compare') : null
       )
     );
   } else if (workedZone) {
@@ -848,12 +919,17 @@ function buildWorkedInteractive(prob, steps, digitLine, op, diff) {
     return createElement(
       'div',
       { className: 'practice-operator-zone' },
-      OperatorPickerCmp({
-        onPick: handleWorkedOperatorPick,
-        disabled: false,
-        wrongSym: appState.wrongSym,
-        wrongKey: appState.operatorTeeterNonce,
-      })
+      createElement(
+        'div',
+        { className: 'operator-picker-overlay-wrap' },
+        OperatorPickerCmp({
+          onPick: handleWorkedOperatorPick,
+          disabled: false,
+          wrongSym: appState.wrongSym,
+          wrongKey: appState.operatorTeeterNonce,
+        }),
+        buildGestureHint('tap', 'gesture-hint--operator')
+      )
     );
   }
 
@@ -999,6 +1075,79 @@ function renderApp() {
   root.innerHTML = '';
   const tree = App();
   if (tree) root.appendChild(tree);
+  window.requestAnimationFrame(function () {
+    window.requestAnimationFrame(syncGestureFlights);
+  });
+}
+
+function syncGestureFlights() {
+  var flights = document.querySelectorAll('.gesture-flight--drag');
+  if (!flights.length) return;
+
+  flights.forEach(function (flight) {
+    var shell = flight.closest('.intro-shell');
+    if (!shell) return;
+
+    var sourceKey = flight.getAttribute('data-source-key');
+    var targetRow = flight.getAttribute('data-target-row');
+    var source = shell.querySelector('.number-box[data-drag-key="' + sourceKey + '"]');
+    var target = shell.querySelector('.place-grid .grid-row[data-row="' + targetRow + '"] .grid-cell--tens');
+    if (!source || !target) return;
+
+    var shellRect = shell.getBoundingClientRect();
+    var sourceRect = source.getBoundingClientRect();
+    var targetRect = target.getBoundingClientRect();
+
+    var startX = sourceRect.left - shellRect.left + sourceRect.width * 0.5 - 100;
+    var startY = sourceRect.top - shellRect.top + sourceRect.height * 0.5 - 200;
+    var endOffsetX = sourceKey === 'second' ? -100 : -300;
+    var endOffsetY = -100;
+    var endX = targetRect.left - shellRect.left + targetRect.width * 0.5 + endOffsetX;
+    var endY = targetRect.top - shellRect.top + targetRect.height * 0.5 + endOffsetY;
+
+    flight.style.left = startX + 'px';
+    flight.style.top = startY + 'px';
+    flight.style.opacity = '1';
+
+    var dx = endX - startX;
+    var dy = endY - startY;
+    var img = flight.querySelector('.gesture-flight-img');
+
+    flight.getAnimations().forEach(function (anim) { anim.cancel(); });
+    if (img) img.getAnimations().forEach(function (anim) { anim.cancel(); });
+
+    flight.animate(
+      [
+        { opacity: 0, transform: 'translate(0px, 0px) scale(0.9)' },
+        { opacity: 1, transform: 'translate(0px, 0px) scale(1)', offset: 0.12 },
+        { opacity: 1, transform: 'translate(' + dx + 'px, ' + dy + 'px) scale(1)', offset: 0.7 },
+        { opacity: 1, transform: 'translate(' + dx + 'px, ' + dy + 'px) scale(0.96)', offset: 0.84 },
+        { opacity: 0, transform: 'translate(' + dx + 'px, ' + dy + 'px) scale(0.92)' },
+      ],
+      {
+        duration: 2400,
+        easing: 'ease-in-out',
+        iterations: Infinity,
+      }
+    );
+
+    if (img) {
+      img.animate(
+        [
+          { transform: 'scale(1) rotate(-8deg)' },
+          { transform: 'scale(1.04) rotate(-3deg)', offset: 0.2 },
+          { transform: 'scale(1) rotate(0deg)', offset: 0.7 },
+          { transform: 'scale(0.9) rotate(0deg)', offset: 0.82 },
+          { transform: 'scale(1) rotate(-8deg)' },
+        ],
+        {
+          duration: 2400,
+          easing: 'ease-in-out',
+          iterations: Infinity,
+        }
+      );
+    }
+  });
 }
 
 function initializeApp() {
