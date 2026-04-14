@@ -513,6 +513,9 @@ body {
 .number-box--draggable {
   cursor: grab;
   animation: boxPulse 1.2s ease-in-out infinite;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .number-box--draggable:active {
