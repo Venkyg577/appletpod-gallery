@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Biology Lab Safety</title>
+  <link rel="stylesheet" href="styles/main.css" />
+</head>
+<body>
+  <div class="responsive-container">
+    <div class="responsive-wrapper">
+      <div id="root"></div>
+    </div>
+  </div>
+
+  <script src="utils/mini-react.js?v=2"></script>
+  <script src="utils/i18n.js"></script>
+  <script src="hooks/useResponsiveLayout.js"></script>
+  <script src="hooks/useAudioFeedback.js"></script>
+  <script src="hooks/useAppletState.js"></script>
+  <script src="components/shared/Button.js"></script>
+  <script src="components/shared/NavBar.js"></script>
+  <script src="components/Hotspot.js"></script>
+  <script src="components/LabScene.js"></script>
+  <script src="components/SceneHitLayer.js"></script>
+  <script src="components/HintCard.js"></script>
+  <script src="components/ControlBar.js"></script>
+  <script src="components/FeedbackRow.js"></script>
+  <script src="components/FeedbackPanel.js"></script>
+  <script src="components/AppletContainer.js"></script>
+  <script src="data.js"></script>
+  <script>
+    (function () {
+      var root = document.getElementById('root');
+      var h = window.MiniReact.h;
+      window.MiniReact.render(h(window.AppletContainer, {}), root);
+    })();
+  </script>
+</body>
+</html>

@@ -20,5 +20,16 @@
     "status": "published",
     "demoUrl": "/parallel-series-circuits/",
     "thumbnail": null
+  },
+  {
+    "slug": "biology-lab",
+    "title": "Biology Lab Safety: Spot the Contamination Risks",
+    "description": "Identify three contamination risks in a lab setup to prevent sample integrity issues — interactive risk assessment through visual inspection and feedback.",
+    "category": "Biology",
+    "grade": "G9-G12",
+    "tags": ["biology", "lab-safety", "risk-assessment", "interactive"],
+    "status": "published",
+    "demoUrl": "/biology-lab/",
+    "thumbnail": null
   }
 ]
