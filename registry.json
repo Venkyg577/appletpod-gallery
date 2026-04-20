@@ -31,5 +31,16 @@
     "status": "published",
     "demoUrl": "/biology-lab/",
     "thumbnail": null
+  },
+  {
+    "slug": "equivalent-fractions",
+    "title": "Equivalent Fractions: Clay Block Exploration",
+    "description": "Divide clay blocks into equal parts and discover that different fractions can represent the same value — hands-on visual learning of fraction equivalence.",
+    "category": "Mathematics",
+    "grade": "G4-G6",
+    "tags": ["fractions", "equivalent-fractions", "visual-learning", "interactive"],
+    "status": "published",
+    "demoUrl": "/equivalent-fractions/",
+    "thumbnail": null
   }
 ]
