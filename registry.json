@@ -42,5 +42,16 @@
     "status": "published",
     "demoUrl": "/equivalent-fractions/",
     "thumbnail": null
+  },
+  {
+    "slug": "comparing-fractions",
+    "title": "Comparing Fractions Visually",
+    "description": "Use chocolate-bar models to compare fractions side by side — students build intuition for fraction size through hands-on visual manipulation.",
+    "category": "Mathematics",
+    "grade": "G3-G5",
+    "tags": ["fractions", "visual", "comparison"],
+    "status": "published",
+    "demoUrl": "/comparing-fractions/",
+    "thumbnail": null
   }
 ]
