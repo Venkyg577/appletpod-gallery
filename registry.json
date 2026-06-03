@@ -53,5 +53,16 @@
     "status": "published",
     "demoUrl": "/comparing-fractions/",
     "thumbnail": null
+  },
+  {
+    "slug": "chocolate-fractions",
+    "title": "Boojho's Chocolate Sharing – Equivalent Fractions",
+    "description": "Interactive chocolate-sharing scenario where students explore equivalent fractions by splitting and comparing chocolate bars.",
+    "category": "Mathematics",
+    "grade": "G3-G5",
+    "tags": ["fractions", "equivalent-fractions", "interactive"],
+    "status": "published",
+    "demoUrl": "/chocolate-fractions/",
+    "thumbnail": null
   }
 ]
