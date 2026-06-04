@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fractions — Interactive Digital Book</title>
+    <style>
+      :root {
+        --accent: #7c4dff;
+        --accent-2: #ffb300;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        overflow: hidden; /* never scroll — everything fits the viewport */
+        background: radial-gradient(circle at top, #3a3142, #1a151f);
+        color: #f5f1fa;
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      }
+
+      /* Stage fills the viewport and centers the book. The book itself is
+         sized in JS (StPageFlip needs pixel dimensions) and recenters as
+         pages turn — exactly like an open physical book. */
+      .stage {
+        position: relative;
+        height: 100vh;
+        width: 100vw;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 16px 80px;
+      }
+      #flipbook { transition: none; }
+
+      /* Each page is the rendered PDF image filling the leaf. */
+      .page {
+        background: #fff;
+        overflow: hidden;
+      }
+      .page img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      /* ===== INDEX LEAF (first left page of the book) ===== */
+      .page.index-page {
+        background: linear-gradient(160deg, #241d2c, #14101a);
+        color: #f5f1fa;
+        padding: 5% 6%;
+        display: flex;
+        flex-direction: column;
+      }
+      .index-page h2 {
+        margin: 0 0 2px;
+        font-size: clamp(15px, 2.2vw, 22px);
+      }
+      .index-page h2 span { color: var(--accent-2); }
+      .index-page .sub {
+        margin: 0 0 4%;
+        font-size: clamp(10px, 1.25vw, 13px);
+        line-height: 1.45;
+        color: #c9bcdd;
+      }
+      .index-list {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 4%;
+        min-height: 0;
+      }
+      .applet-card {
+        display: flex;
+        gap: 10px;
+        background: rgba(124, 77, 255, 0.1);
+        border: 1px solid rgba(124, 77, 255, 0.4);
+        border-radius: 12px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.12s ease, border-color 0.2s ease,
+          background 0.2s ease;
+      }
+      .applet-card:hover {
+        border-color: var(--accent-2);
+        background: rgba(124, 77, 255, 0.2);
+        transform: translateY(-2px);
+      }
+      .applet-card .thumb {
+        flex: 0 0 42%;
+        aspect-ratio: 16 / 10;
+        object-fit: cover;
+        background: #11365a;
+      }
+      .applet-card .meta {
+        flex: 1 1 auto;
+        padding: 8px 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .applet-card .meta .t {
+        font-size: clamp(11px, 1.25vw, 14px);
+        font-weight: 600;
+        line-height: 1.25;
+      }
+      .applet-card .meta .topic {
+        font-size: clamp(9px, 1vw, 11px);
+        color: #b9a9d6;
+        margin-top: 3px;
+        line-height: 1.3;
+      }
+      .applet-card .meta .topic b { color: var(--accent-2); font-weight: 600; }
+      .applet-card .meta .cta {
+        align-self: flex-start;
+        margin-top: 7px;
+        font-size: clamp(9px, 1vw, 11.5px);
+        font-weight: 700;
+        color: #fff;
+        background: var(--accent);
+        padding: 4px 12px;
+        border-radius: 20px;
+      }
+      .index-foot {
+        margin-top: 4%;
+        font-size: clamp(9px, 1vw, 11px);
+        color: #9d8fb8;
+        line-height: 1.4;
+        text-align: center;
+      }
+
+      /* ===== Clickable hotspot overlay on a page (percentage-based) ===== */
+      .hotspot {
+        position: absolute;
+        cursor: pointer;
+        border: 3px dashed rgba(255, 179, 0, 0.7);
+        border-radius: 10px;
+        background: rgba(124, 77, 255, 0);
+        transition: background 0.25s ease, box-shadow 0.25s ease;
+        z-index: 5;
+        animation: ring 1.8s ease-out infinite;
+      }
+      .hotspot:hover {
+        background: rgba(124, 77, 255, 0.18);
+        border-color: var(--accent-2);
+        box-shadow: 0 0 0 4px rgba(255, 179, 0, 0.25);
+      }
+      .hotspot::after {
+        content: var(--label, "▶ Open Applet");
+        position: absolute;
+        right: -6px;
+        bottom: -34px;
+        background: var(--accent-2);
+        color: #2b2330;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1;
+        padding: 6px 10px;
+        border-radius: 6px;
+        white-space: nowrap;
+        opacity: 0;
+        transform: translateY(-4px);
+        transition: opacity 0.25s ease, transform 0.25s ease;
+        pointer-events: none;
+      }
+      .hotspot:hover::after { opacity: 1; transform: translateY(0); }
+      @keyframes ring {
+        0% { box-shadow: 0 0 0 0 rgba(255, 179, 0, 0.55); }
+        100% { box-shadow: 0 0 0 14px rgba(255, 179, 0, 0); }
+      }
+
+      /* ===== Side navigation arrows (left / right edges) ===== */
+      .arrow {
+        position: fixed;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(124, 77, 255, 0.85);
+        color: #fff;
+        font-size: 28px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 30;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+        transition: background 0.2s ease, transform 0.12s ease, opacity 0.2s ease;
+      }
+      .arrow:hover:not(:disabled) { background: #9670ff; }
+      .arrow:active:not(:disabled) { transform: translateY(-50%) scale(0.92); }
+      .arrow:disabled { opacity: 0.25; cursor: not-allowed; }
+      #arrowPrev { left: 14px; }
+      #arrowNext { right: 14px; }
+
+      /* ===== Floating page indicator + hint (bottom center) ===== */
+      .pill {
+        position: fixed;
+        bottom: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(43, 35, 48, 0.82);
+        backdrop-filter: blur(2px);
+        border: 1px solid rgba(124, 77, 255, 0.6);
+        padding: 5px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-variant-numeric: tabular-nums;
+        z-index: 30;
+        text-align: center;
+        max-width: 92vw;
+      }
+      #hint { bottom: 48px; font-size: clamp(10px, 1.6vh, 13px); pointer-events: none; }
+
+    </style>
+  </head>
+  <body>
+    <button class="arrow" id="arrowPrev" aria-label="Previous page">‹</button>
+    <button class="arrow" id="arrowNext" aria-label="Next page">›</button>
+
+    <div class="stage" id="stage">
+      <div id="flipbook"></div>
+    </div>
+
+    <div class="pill" id="hint"></div>
+    <div class="pill" id="indicator">Page 1 / 15</div>
+
+    <!-- Local copy of StPageFlip so it works fully offline -->
+    <script src="book/lib/page-flip.browser.js"></script>
+    <script>
+      // ---- Configuration --------------------------------------------------
+      var TOTAL_PAGES = 15;                    // PDF pages
+      var IMG_BASE = "book/pages/page-";
+      var PAGE_RATIO = 1325 / 1723;            // page width / height
+
+      // Single source of truth for applets. Each appears (a) as a card on the
+      // INDEX leaf that opens with the book, and (b) as a hotspot over its
+      // topic on the matching book page. `page` is the PDF page number.
+      var APPLETS = [
+        {
+          id: "applet1",
+          title: "Comparing Fractions Visually",
+          topic: "Comparing wholes · ½ vs ⅓",
+          page: 1,
+          src: "/comparing-fractions/",
+          thumb: "book/thumbs/applet1.png",
+          label: "▶ Open: Comparing Fractions",
+          hotspot: { top: 27.74, left: 10.57, width: 41.89, height: 18.11 },
+        },
+        {
+          id: "applet2",
+          title: "Equivalent Fractions",
+          topic: "Fun with Fraction Kit · ½ = 2⁄4 = 3⁄6",
+          page: 2,
+          src: "/chocolate-fractions/",
+          thumb: "book/thumbs/applet2.png",
+          label: "▶ Open: Equivalent Fractions",
+          hotspot: { top: 52.7, left: 66.04, width: 24.15, height: 16.83 },
+        },
+      ];
+
+      // page number -> [applets] for hotspot lookup
+      var APPLETS_BY_PAGE = {};
+      APPLETS.forEach(function (ap) {
+        (APPLETS_BY_PAGE[ap.page] = APPLETS_BY_PAGE[ap.page] || []).push(ap);
+      });
+
+      function pad(n) { return n < 10 ? "0" + n : "" + n; }
+
+      // ---- Leaf builders --------------------------------------------------
+      // Leaf 0 = the applet index. Leaves 1..15 = PDF pages 1..15.
+      function buildIndexLeaf() {
+        var div = document.createElement("div");
+        div.className = "page index-page";
+        div.setAttribute("data-density", "hard"); // stiff like a cover/contents
+
+        var html =
+          '<h2>📚 <span>Interactive Applets</span></h2>' +
+          '<p class="sub">Start an applet right away, or open it later from its ' +
+          "topic while you read the book.</p>" +
+          '<div class="index-list">';
+        APPLETS.forEach(function (ap) {
+          html +=
+            '<div class="applet-card" data-id="' + ap.id + '">' +
+            '<img class="thumb" src="' + ap.thumb + '" alt="' + ap.title + '" />' +
+            '<div class="meta">' +
+            '<div class="t">' + ap.title + "</div>" +
+            '<div class="topic">' + ap.topic + " · <b>Page " + ap.page + "</b></div>" +
+            '<span class="cta">▶ Start</span>' +
+            "</div></div>";
+        });
+        html +=
+          "</div>" +
+          '<div class="index-foot">Turn the page to begin reading →</div>';
+        div.innerHTML = html;
+
+        // Wire each card to open its applet.
+        APPLETS.forEach(function (ap) {
+          var card = div.querySelector('[data-id="' + ap.id + '"]');
+          card.addEventListener("click", function () { openApplet(ap); });
+        });
+        return div;
+      }
+
+      function buildPageLeaf(n) {
+        var div = document.createElement("div");
+        div.className = "page";
+        div.setAttribute("data-density", "soft");
+
+        var img = document.createElement("img");
+        img.src = IMG_BASE + pad(n) + ".png";
+        img.alt = "Page " + n;
+        div.appendChild(img);
+
+        (APPLETS_BY_PAGE[n] || []).forEach(function (ap) {
+          var a = document.createElement("a");
+          a.className = "hotspot";
+          a.href = ap.src;
+          a.title = ap.title;
+          a.style.setProperty("--label", '"' + ap.label + '"');
+          a.style.top = ap.hotspot.top + "%";
+          a.style.left = ap.hotspot.left + "%";
+          a.style.width = ap.hotspot.width + "%";
+          a.style.height = ap.hotspot.height + "%";
+          a.addEventListener("click", function (e) {
+            e.preventDefault();
+            openApplet(ap);
+          });
+          div.appendChild(a);
+        });
+        return div;
+      }
+
+      // ---- Size the book to fit the viewport (no scroll) ------------------
+      function computeSize() {
+        var stage = document.getElementById("stage");
+        var cs = getComputedStyle(stage);
+        var padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+        var padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+        var availH = stage.clientHeight - padY;
+        var availW = stage.clientWidth - padX;
+        var h = availH;
+        var w = h * PAGE_RATIO;
+        if (2 * w > availW) { w = availW / 2; h = w / PAGE_RATIO; } // spread fits
+        return { w: Math.floor(w), h: Math.floor(h) };
+      }
+
+      // ---- Elements -------------------------------------------------------
+      var el = document.getElementById("flipbook");
+      var indicator = document.getElementById("indicator");
+      var hintEl = document.getElementById("hint");
+      var arrowPrev = document.getElementById("arrowPrev");
+      var arrowNext = document.getElementById("arrowNext");
+      var pageFlip = null;
+
+      // Total leaves = index + all PDF pages.
+      var LAST_INDEX = TOTAL_PAGES; // 0-based index of the last leaf
+
+      function createBook() {
+        var size = computeSize();
+        pageFlip = new St.PageFlip(el, {
+          width: size.w,
+          height: size.h,
+          size: "fixed",
+          minWidth: 200, maxWidth: 2000,
+          minHeight: 260, maxHeight: 2600,
+          drawShadow: true,
+          flippingTime: 700,
+          usePortrait: false,   // always the landscape two-page spread
+          startZIndex: 0,
+          autoSize: false,
+          maxShadowOpacity: 0.5,
+          // No cover: the opening spread is [ index | page 1 ].
+          showCover: false,
+          mobileScrollSupport: false,
+        });
+
+        var leaves = [buildIndexLeaf()];
+        for (var i = 1; i <= TOTAL_PAGES; i++) leaves.push(buildPageLeaf(i));
+        pageFlip.loadFromHTML(leaves);
+
+        pageFlip.on("flip", function (e) { updateChrome(e.data); });
+        pageFlip.on("changeState", function (e) {
+          var busy = e.data === "flipping";
+          var idx = pageFlip.getCurrentPageIndex();
+          arrowPrev.disabled = busy || idx <= 0;
+          arrowNext.disabled = busy || idx >= LAST_INDEX;
+        });
+
+        updateChrome(pageFlip.getCurrentPageIndex());
+      }
+
+      function updateChrome(idx) {
+        // idx 0 = index leaf; idx N (>=1) shows PDF page N as the left page.
+        if (idx <= 0) {
+          indicator.textContent = "Index · Applets";
+          hintEl.style.display = "none";
+        } else {
+          var pageNo = Math.min(idx, TOTAL_PAGES);
+          indicator.textContent = "Page " + pageNo + " / " + TOTAL_PAGES;
+          // Show the chocolate tip only while page 1 is the left page.
+          if (idx === 1) {
+            hintEl.textContent =
+              "💡 Click the chocolate bars to open the “Comparing Fractions” applet.";
+            hintEl.style.display = "block";
+          } else {
+            hintEl.style.display = "none";
+          }
+        }
+        arrowPrev.disabled = idx <= 0;
+        arrowNext.disabled = idx >= LAST_INDEX;
+      }
+
+      function rebuild() {
+        if (pageFlip) {
+          try { pageFlip.destroy(); } catch (err) {}
+          el.innerHTML = "";
+        }
+        createBook();
+      }
+
+      // ---- Open applet in a new tab (works on file:// — no server needed) --
+      function openApplet(ap) {
+        window.open(ap.src, "_blank");
+        // Flip the book to the matching topic page so it's waiting when the
+        // user returns to this tab.
+        if (pageFlip) {
+          try { pageFlip.turnToPage(ap.page); } catch (e) {}
+        }
+      }
+
+      // ---- Navigation -----------------------------------------------------
+      arrowNext.addEventListener("click", function () { pageFlip.flipNext(); });
+      arrowPrev.addEventListener("click", function () { pageFlip.flipPrev(); });
+      document.addEventListener("keydown", function (e) {
+        if (!pageFlip) return;
+        if (e.key === "ArrowLeft") pageFlip.flipPrev();
+        else if (e.key === "ArrowRight") pageFlip.flipNext();
+      });
+
+      var rt;
+      window.addEventListener("resize", function () {
+        clearTimeout(rt);
+        rt = setTimeout(rebuild, 200);
+      });
+
+      window.addEventListener("load", createBook);
+    </script>
+  </body>
+</html>

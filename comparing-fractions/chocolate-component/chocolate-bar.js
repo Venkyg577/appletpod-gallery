@@ -22,6 +22,7 @@
       shadedIndex = null,       /* highlighted segment index */
       shadedIndices = null,     /* multiple highlighted segments */
       dimUnshaded = false,      /* dim non-selected halves after selection */
+      dimAllSegments = false,   /* render all parts as unselected background pieces */
       outlinePulse = false,     /* pulsate the whole-bar outline */
       outlinePulseDelay = '0s', /* delay whole-bar pulse for sequenced teaching screens */
       selected = false,         /* outer glow when bar is tap-selected */
@@ -107,13 +108,12 @@
         wrapperStyle.transformOrigin = sliding.origin || 'top left';
       }
     }
-
     /* Build SVG segments */
     const segmentsEls = [];
     for (let i = 0; i < segments; i++) {
       const x = i * (segWidth + pieceGap);
       const isShaded = shadeIds.has(i);
-      const isDim = dimUnshaded && shadeIds.size > 0 && !isShaded;
+      const isDim = dimAllSegments || (dimUnshaded && shadeIds.size > 0 && !isShaded);
       const isPulseSeg = pulseSegment === i;
       const isSlidingSeg = segmentSlide && segmentSlide.index === i;
       const segClass = [
@@ -327,6 +327,8 @@
               style: wrapperStyle,
               'data-size': size,
               'data-bar-id': id || '',
+              'data-shaded-index': shadedIndex != null ? String(shadedIndex) : '',
+              'data-slide-index': segmentSlide && segmentSlide.index != null ? String(segmentSlide.index) : '',
             },
             svg
           ),

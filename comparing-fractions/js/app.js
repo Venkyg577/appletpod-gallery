@@ -40,8 +40,10 @@
     wholesNormalized: false,   /* after S22 succeeds */
     equalizedSize: null,       /* null | 'small' | 'large' — final common whole size after S22 */
     overlapPhase: 'idle',      /* 'idle' | 'animating' | 'done' — S15/S16/S24/S29 */
-    s15SlideDelta: null,       /* { dx, dy } measured top-left → top-left for S15 overlap */
+    s15SlideDelta: null,       /* { dx, dy } measured chosen half → chosen half for S15 overlap */
     s29SlideDelta: null,       /* { dx, dy } measured top-left → top-left for S29 overlap */
+    compareHalfSmall: null,    /* frozen selected small half for 1/2 vs 1/2 comparison */
+    compareHalfLarge: null,    /* frozen selected large half for 1/2 vs 1/2 comparison */
     /* S24 / S30: after picking a comparison symbol, align shaded halves in screen space */
     s23OverlapPhase: 'idle',   /* idle | pending | animating | done */
     s23OverlapDelta: null,
@@ -272,6 +274,30 @@
     setState(patch);
   }
 
+  function selectedSmallHalf() {
+    return appState.compareHalfSmall != null
+      ? appState.compareHalfSmall
+      : (appState.pickedHalfSmall != null ? appState.pickedHalfSmall : 0);
+  }
+
+  function selectedLargeHalf() {
+    return appState.compareHalfLarge != null
+      ? appState.compareHalfLarge
+      : (appState.pickedHalfLarge != null ? appState.pickedHalfLarge : 0);
+  }
+
+  function visibleShadedIndex(barId, fallback) {
+    const bar = document.querySelector('[data-bar-id="' + barId + '"]');
+    if (!bar) return fallback;
+    const shadedSegment = bar.querySelector('g.chocolate-segment--shaded[data-segment-index]');
+    if (shadedSegment) {
+      const idx = parseInt(shadedSegment.getAttribute('data-segment-index'), 10);
+      if (Number.isFinite(idx)) return idx;
+    }
+    const attrIndex = parseInt(bar.getAttribute('data-shaded-index'), 10);
+    return Number.isFinite(attrIndex) ? attrIndex : fallback;
+  }
+
   /* ---------------- Navigation gating ---------------- */
   function canGoPrev(state) {
     return false;
@@ -310,9 +336,9 @@
     if (s === 27) return true;
     if (s === 28) return true;
     if (s === 29) return true;
-    if (s === 30) return state.sameSizeAns2 === 'Yes';
+    if (s === 30) return state.sameSizeAns2 === 'Yes' && state.overlapPhase === 'done';
     if (s === 31) return state.overlapPhase === 'done';
-    if (s === 32) return state.comparedSymbol2 === '>';
+    if (s === 32) return state.comparedSymbol2 === '>' && state.s30OverlapPhase === 'done';
     if (s === 33) return true;
     if (s === 34) return true;
     if (s === 35) return true;
@@ -331,6 +357,7 @@
       goToStep(3, {
         pickedParts: null,
         pickedHalfSmall: null,
+        compareHalfSmall: null,
         feedback: null,
         wrongValue: null,
         navBackMode: false,
@@ -339,7 +366,7 @@
     }
     /* S3 → S4: after correct “2”, show divided bar + choose-a-half dialogue. */
     if (s === 3 && appState.pickedParts === 2) {
-      goToStep(4, { pickedHalfSmall: null, navBackMode: false });
+      goToStep(4, { pickedHalfSmall: null, compareHalfSmall: null, navBackMode: false });
       return;
     }
     /* S4 → S6: ask how many equal parts for the bigger bar. */
@@ -347,18 +374,24 @@
       goToStep(6, {
         pickedPartsBig: null,
         pickedHalfLarge: null,
+        compareHalfLarge: null,
         navBackMode: false,
       });
       return;
     }
     /* S6 → S7: after correct “2”, show divided bigger bar + choose-a-half dialogue. */
     if (s === 6 && appState.pickedPartsBig === 2) {
-      goToStep(7, { pickedHalfLarge: null, navBackMode: false });
+      goToStep(7, { pickedHalfLarge: null, compareHalfLarge: null, navBackMode: false });
       return;
     }
-    /* S7/S8: after choosing a half on the large bar, jump to side-by-side compare (S9). */
+    /* S7/S8: after choosing a half on the large bar, jump straight to compare question (S10). */
     if ((s === 7 || s === 8) && appState.pickedHalfLarge != null) {
-      goToStep(9, { navBackMode: false });
+      goToStep(10, { navBackMode: false });
+      return;
+    }
+    /* S30: after confirming equal wholes, the overlap animation already plays on this slide. */
+    if (s === 30 && appState.sameSizeAns2 === 'Yes' && appState.overlapPhase === 'done') {
+      goToStep(32, { navBackMode: false });
       return;
     }
     goToStep(s + 1, { navBackMode: false });
@@ -368,8 +401,14 @@
     const patch = {};
     if (step >= 3 && appState.pickedParts == null) patch.pickedParts = 2;
     if (step >= 4 && appState.pickedHalfSmall == null) patch.pickedHalfSmall = 0;
+    if (step >= 4 && appState.compareHalfSmall == null) {
+      patch.compareHalfSmall = appState.pickedHalfSmall != null ? appState.pickedHalfSmall : 0;
+    }
     if (step >= 6 && appState.pickedPartsBig == null) patch.pickedPartsBig = 2;
     if (step >= 7 && appState.pickedHalfLarge == null) patch.pickedHalfLarge = 0;
+    if (step >= 7 && appState.compareHalfLarge == null) {
+      patch.compareHalfLarge = appState.pickedHalfLarge != null ? appState.pickedHalfLarge : 0;
+    }
     if ((step === 10 || step === 11) && appState.sameSizeAns !== 'No') patch.sameSizeAns = 'No';
     if (step === 15) patch.overlapPhase = 'done';
     if (step >= 22 && appState.wholesNormalized !== true) patch.wholesNormalized = true;
@@ -585,22 +624,38 @@
       if (window.sound) window.sound.playClickSound();
       if (val === 2) {
         if (window.sound) window.sound.playCorrectSound();
-        setState({ pickedParts: 2, feedback: 'correct', wrongValue: null });
+        const nextKey = dialogueKey([
+          getText('content-ui.dialogs.s4_line_1', {}, appState.language),
+          getText('content-ui.dialogs.s4_line_2', {}, appState.language),
+        ]);
+        lastShownDialogueKey = nextKey;
+        setState({ pickedParts: 2, feedback: 'correct', wrongValue: null, typewriterDoneKey: nextKey });
         scheduleAuto(CORRECT_OPTION_FEEDBACK_MS, () => {
           const cur = typeof window.__getAppState === 'function' ? window.__getAppState() : null;
           if (!cur || cur.step !== 3 || cur.pickedParts !== 2) return;
           goToStep(4, {
             pickedParts: 2,
             pickedHalfSmall: null,
+            compareHalfSmall: null,
             navBackMode: false,
           });
         });
       } else {
         if (window.sound) window.sound.playWrongSound();
         setState({ feedback: 'wrong', wrongValue: val });
-        scheduleAuto(3000, () => setState({ feedback: null, wrongValue: null }));
       }
     };
+
+    const isCorrect = appState.pickedParts === 2;
+    const isWrong = appState.feedback === 'wrong';
+    const displayLines = isCorrect
+      ? [
+          getText('content-ui.dialogs.s4_line_1', {}, appState.language),
+          getText('content-ui.dialogs.s4_line_2', {}, appState.language),
+        ]
+      : isWrong
+        ? [getText('content-ui.feedback.wrong_partition', {}, appState.language)]
+        : lines;
 
     const optionRow = OptionRow({
       options: [
@@ -616,32 +671,47 @@
       onSelect: onSelect,
     });
 
+    const onTapHalfEarly = (i) => {
+      if (window.sound) window.sound.playClickSound();
+      if (window.sound) window.sound.playCorrectSound();
+      clearAutoTimer();
+      goToStep(4, { pickedParts: 2, pickedHalfSmall: i, compareHalfSmall: i, navBackMode: false, feedback: 'correct', wrongValue: null });
+    };
+
     const stage = h(
       'div',
       { className: 'activity-stage' },
       h(
         'div',
         { className: 'bars-stack' },
-        ChocolateBar({
-          id: 'small-s3',
-          size: 'small',
-          parts: appState.pickedParts === 2 ? 2 : 0,
-          splitAnimate: appState.pickedParts === 2,
-          barControls: optionRow,
-        })
+        isCorrect
+          ? ChocolateBar({
+              id: 'small-s3',
+              size: 'small',
+              parts: 2,
+              pulsateHalves: true,
+              tapHint: true,
+              onTapSegment: onTapHalfEarly,
+            })
+          : ChocolateBar({
+              id: 'small-s3',
+              size: 'small',
+              parts: 0,
+              barControls: optionRow,
+            })
       )
     );
 
     return buildActivityShell({
-      character: 'paheli',
-      lines: lines,
+      character: isCorrect ? 'boojho' : 'paheli',
+      lines: displayLines,
       activityArea: stage,
-      footerCenter: appState.pickedParts === 2 ? '' : prompt,
+      footerCenter: isCorrect ? getText('standard-ui.instructions.tap_a_half', {}, appState.language) : prompt,
       canPrev: canGoPrev(appState),
       canNext: false,
       onPrev: goPrev,
       onNext: goNext,
-      glowNext: appState.pickedParts === 2,
+      glowNext: false,
     });
   }
 
@@ -665,7 +735,12 @@
       if (picked) return;
       if (window.sound) window.sound.playClickSound();
       if (window.sound) window.sound.playCorrectSound();
-      setState({ pickedHalfSmall: i, feedback: 'correct', wrongValue: null });
+      setState({ pickedHalfSmall: i, compareHalfSmall: i, feedback: 'correct', wrongValue: null });
+      scheduleAuto(CORRECT_OPTION_FEEDBACK_MS, () => {
+        const cur = typeof window.__getAppState === 'function' ? window.__getAppState() : null;
+        if (!cur || cur.step !== 4 || cur.pickedHalfSmall == null) return;
+        goToStep(5, { pickedHalfSmall: i, compareHalfSmall: i, navBackMode: false });
+      });
     };
 
     const stage = h(
@@ -753,22 +828,38 @@
       if (window.sound) window.sound.playClickSound();
       if (val === 2) {
         if (window.sound) window.sound.playCorrectSound();
-        setState({ pickedPartsBig: 2, feedback: 'correct', wrongValue: null });
+        const nextKey = dialogueKey([
+          getText('content-ui.dialogs.s7_line_1', {}, appState.language),
+          getText('content-ui.dialogs.s7_line_2', {}, appState.language),
+        ]);
+        lastShownDialogueKey = nextKey;
+        setState({ pickedPartsBig: 2, feedback: 'correct', wrongValue: null, typewriterDoneKey: nextKey });
         scheduleAuto(CORRECT_OPTION_FEEDBACK_MS, () => {
           const cur = typeof window.__getAppState === 'function' ? window.__getAppState() : null;
           if (!cur || cur.step !== 6 || cur.pickedPartsBig !== 2) return;
           goToStep(7, {
             pickedPartsBig: 2,
             pickedHalfLarge: null,
+            compareHalfLarge: null,
             navBackMode: false,
           });
         });
       } else {
         if (window.sound) window.sound.playWrongSound();
         setState({ feedback: 'wrong', wrongValue: val });
-        scheduleAuto(3000, () => setState({ feedback: null, wrongValue: null }));
       }
     };
+
+    const isCorrectBig = appState.pickedPartsBig === 2;
+    const isWrongBig = appState.feedback === 'wrong';
+    const displayLinesBig = isCorrectBig
+      ? [
+          getText('content-ui.dialogs.s7_line_1', {}, appState.language),
+          getText('content-ui.dialogs.s7_line_2', {}, appState.language),
+        ]
+      : isWrongBig
+        ? [getText('content-ui.feedback.wrong_partition', {}, appState.language)]
+        : lines;
 
     const optionRow = OptionRow({
       options: [
@@ -783,6 +874,13 @@
       disabled: appState.pickedPartsBig === 2,
       onSelect: onSelect,
     });
+
+    const onTapLargeHalfEarly = (i) => {
+      if (window.sound) window.sound.playClickSound();
+      if (window.sound) window.sound.playCorrectSound();
+      clearAutoTimer();
+      goToStep(7, { pickedPartsBig: 2, pickedHalfLarge: i, compareHalfLarge: i, navBackMode: false, feedback: 'correct', wrongValue: null });
+    };
 
     const stage = h(
       'div',
@@ -800,26 +898,34 @@
           dimLabels: true,
           fractionLabel: { num: '1', den: '2' },
         }),
-        ChocolateBar({
-          id: 'large-s6',
-          size: 'large',
-          parts: appState.pickedPartsBig === 2 ? 2 : 0,
-          splitAnimate: appState.pickedPartsBig === 2,
-          barControls: optionRow,
-        })
+        isCorrectBig
+          ? ChocolateBar({
+              id: 'large-s6',
+              size: 'large',
+              parts: 2,
+              pulsateHalves: true,
+              tapHint: true,
+              onTapSegment: onTapLargeHalfEarly,
+            })
+          : ChocolateBar({
+              id: 'large-s6',
+              size: 'large',
+              parts: 0,
+              barControls: optionRow,
+            })
       )
     );
 
     return buildActivityShell({
       character: 'boojho',
-      lines: lines,
+      lines: displayLinesBig,
       activityArea: stage,
-      footerCenter: appState.pickedPartsBig === 2 ? '' : prompt,
+      footerCenter: isCorrectBig ? getText('standard-ui.instructions.tap_a_half', {}, appState.language) : prompt,
       canPrev: canGoPrev(appState),
       canNext: false,
       onPrev: goPrev,
       onNext: goNext,
-      glowNext: appState.pickedPartsBig === 2,
+      glowNext: false,
     });
   }
 
@@ -842,7 +948,12 @@
       if (pickedLarge) return;
       if (window.sound) window.sound.playClickSound();
       if (window.sound) window.sound.playCorrectSound();
-      setState({ pickedHalfLarge: i, feedback: 'correct', wrongValue: null });
+      setState({ pickedHalfLarge: i, compareHalfLarge: i, feedback: 'correct', wrongValue: null });
+      scheduleAuto(CORRECT_OPTION_FEEDBACK_MS, () => {
+        const cur = typeof window.__getAppState === 'function' ? window.__getAppState() : null;
+        if (!cur || (cur.step !== 7 && cur.step !== 8) || cur.pickedHalfLarge == null) return;
+        goToStep(10, { pickedHalfLarge: i, compareHalfLarge: i, navBackMode: false });
+      });
     };
 
     const stage = h(
@@ -1001,15 +1112,13 @@
       : [
           getText('content-ui.dialogs.s10_line_1', {}, appState.language),
           getText('content-ui.dialogs.s10_line_2', {}, appState.language),
-          getText('content-ui.dialogs.s10_line_3', {}, appState.language),
         ];
 
     const onSelect = (val) => {
       if (window.sound) window.sound.playClickSound();
       if (val === 'No') {
         if (window.sound) window.sound.playCorrectSound();
-        setState({ sameSizeAns: 'No', feedback: 'correct', wrongValue: null });
-        scheduleAuto(2000, () => goToStep(12, { sameSizeAns: 'No' }));
+        goToStep(12, { sameSizeAns: 'No', feedback: 'correct', wrongValue: null });
       } else {
         if (window.sound) window.sound.playWrongSound();
         setState({ sameSizeAns: null, feedback: 'wrong', wrongValue: 'Yes' });
@@ -1061,8 +1170,6 @@
       getText('content-ui.dialogs.s12_line_1', {}, appState.language),
       getText('content-ui.dialogs.s12_line_2', {}, appState.language),
     ];
-    schedulePassiveAdvance(13, 4000, lines);
-
     const stage = h(
       'div',
       { className: 'activity-stage' },
@@ -1077,12 +1184,12 @@
       character: 'boojho',
       lines: lines,
       activityArea: stage,
-      footerCenter: '',
+      footerCenter: 'Tap » to continue.',
       canPrev: canGoPrev(appState),
-      canNext: appState.navBackMode ? canGoNext(appState) : false,
+      canNext: canGoNext(appState),
       onPrev: goPrev,
       onNext: goNext,
-      glowNext: false,
+      glowNext: true,
     });
   }
 
@@ -1093,8 +1200,6 @@
       getText('content-ui.dialogs.s13_line_2', {}, appState.language),
     ];
     const hint = getText('content-ui.dialogs.s13_hint', {}, appState.language);
-    schedulePassiveAdvance(14, 4000, lines);
-
     const stage = h(
       'div',
       { className: 'activity-stage' },
@@ -1109,12 +1214,12 @@
       character: 'paheli',
       lines: lines,
       activityArea: stage,
-      footerCenter: hint,
+      footerCenter: 'Tap » to continue.',
       canPrev: canGoPrev(appState),
-      canNext: appState.navBackMode ? canGoNext(appState) : false,
+      canNext: canGoNext(appState),
       onPrev: goPrev,
       onNext: goNext,
-      glowNext: false,
+      glowNext: true,
     });
   }
 
@@ -1125,7 +1230,19 @@
 
     const onCompare = () => {
       if (window.sound) window.sound.playClickSound();
-      goToStep(15, { navBackMode: false });
+      const visibleSmallIndex = visibleShadedIndex(
+        'small-pair',
+        appState.pickedHalfSmall != null ? appState.pickedHalfSmall : 0
+      );
+      const visibleLargeIndex = visibleShadedIndex(
+        'large-pair',
+        appState.pickedHalfLarge != null ? appState.pickedHalfLarge : 0
+      );
+      goToStep(15, {
+        navBackMode: false,
+        compareHalfSmall: visibleSmallIndex,
+        compareHalfLarge: visibleLargeIndex,
+      });
     };
 
     const stage = h(
@@ -1161,17 +1278,15 @@
     });
   }
 
-  /* S15 – Slide animation: small bar moves so its top-left meets the large bar's top-left. */
+  /* S15 – Slide animation: small chosen half moves onto the large chosen half. */
   function buildScreen15() {
-    if (!appState.navBackMode && appState.overlapPhase === 'done' && autoTimer == null) {
-      scheduleAuto(700, () => goToStep(16));
-    }
 
     const lines = [getText('content-ui.dialogs.s15_line_1', {}, appState.language)];
     const delta = appState.s15SlideDelta;
     const slideActive = delta != null && appState.overlapPhase === 'animating';
-    const smallHalf = appState.pickedHalfSmall != null ? appState.pickedHalfSmall : 0;
-    const largeHalf = appState.pickedHalfLarge != null ? appState.pickedHalfLarge : 0;
+    const comparisonMeasured = delta != null;
+    const smallHalf = delta && delta.smallIndex != null ? delta.smallIndex : selectedSmallHalf();
+    const largeHalf = delta && delta.largeIndex != null ? delta.largeIndex : selectedLargeHalf();
 
     const stage = h(
       'div',
@@ -1183,27 +1298,30 @@
           id: 'small-s15',
           size: 'small',
           parts: 2,
-          shadedIndex: smallHalf,
-          dimUnshaded: true,
+          shadedIndex: comparisonMeasured ? null : smallHalf,
+          dimAllSegments: comparisonMeasured,
+          dimUnshaded: !comparisonMeasured,
           fractionLabel: { num: '1', den: '2' },
           pulseSegment: slideActive ? smallHalf : null,
           outlinePulse: slideActive,
           staggerPulse: slideActive,
-          sliding: slideActive ? { dx: delta.dx, dy: delta.dy, scale: 1, keyframes: true, origin: 'top left', duration: OVERLAP_ANIMATION_DURATION } : null,
-          faded: appState.overlapPhase === 'animating',
         }),
         ChocolateBar({
           id: 'large-s15',
           size: 'large',
           parts: 2,
-          shadedIndex: largeHalf,
-          dimUnshaded: true,
+          shadedIndex: comparisonMeasured ? null : largeHalf,
+          dimAllSegments: comparisonMeasured,
+          dimUnshaded: !comparisonMeasured,
           pulseSegment: slideActive ? largeHalf : null,
           outlinePulse: slideActive,
           staggerPulse: slideActive,
           fractionLabel: { num: '1', den: '2' },
         })
-      )
+      ),
+      comparisonMeasured ? selectedHalfOverlay(delta, 'source') : null,
+      comparisonMeasured ? selectedHalfOverlay(delta, 'target') : null,
+      slideActive ? flyingHalfOverlay(delta) : null
     );
 
     return buildActivityShell({
@@ -1212,9 +1330,11 @@
       activityArea: stage,
       footerCenter: getText('standard-ui.instructions.watch', {}, appState.language),
       canPrev: canGoPrev(appState),
+      footerCenter: appState.overlapPhase === 'done' ? 'Tap » to continue.' : getText('standard-ui.instructions.watch', {}, appState.language),
       canNext: appState.overlapPhase === 'done',
       onPrev: goPrev,
       onNext: goNext,
+      glowNext: appState.overlapPhase === 'done',
     });
   }
 
@@ -1223,10 +1343,8 @@
     const lines = [getText('content-ui.dialogs.s16_line_1', {}, appState.language)];
     const smallerLabel = getText('standard-ui.labels.smaller_half', {}, appState.language);
     const biggerLabel = getText('standard-ui.labels.bigger_half', {}, appState.language);
-    const smallHalf = appState.pickedHalfSmall != null ? appState.pickedHalfSmall : 0;
-    const largeHalf = appState.pickedHalfLarge != null ? appState.pickedHalfLarge : 0;
-    schedulePassiveAdvance(17, 4000, lines);
-
+    const smallHalf = selectedSmallHalf();
+    const largeHalf = selectedLargeHalf();
     const stage = h(
       'div',
       { className: 'activity-stage' },
@@ -1260,12 +1378,12 @@
       character: 'paheli',
       lines: lines,
       activityArea: stage,
-      footerCenter: '',
+      footerCenter: 'Tap » to continue.',
       canPrev: canGoPrev(appState),
-      canNext: appState.navBackMode ? canGoNext(appState) : false,
+      canNext: canGoNext(appState),
       onPrev: goPrev,
       onNext: goNext,
-      glowNext: false,
+      glowNext: true,
     });
   }
 
@@ -1274,10 +1392,8 @@
     const lines = [getText('content-ui.dialogs.s17_line_1', {}, appState.language)];
     const smallerLabel = getText('standard-ui.labels.smaller_half', {}, appState.language);
     const biggerLabel = getText('standard-ui.labels.bigger_half', {}, appState.language);
-    const smallHalf = appState.pickedHalfSmall != null ? appState.pickedHalfSmall : 0;
-    const largeHalf = appState.pickedHalfLarge != null ? appState.pickedHalfLarge : 0;
-    schedulePassiveAdvance(18, 5200, lines);
-
+    const smallHalf = selectedSmallHalf();
+    const largeHalf = selectedLargeHalf();
     const stage = h(
       'div',
       { className: 'activity-stage' },
@@ -1323,23 +1439,22 @@
       character: 'paheli',
       lines: lines,
       activityArea: stage,
-      footerCenter: '',
+      footerCenter: 'Tap » to continue.',
       canPrev: canGoPrev(appState),
-      canNext: appState.navBackMode ? canGoNext(appState) : false,
+      canNext: canGoNext(appState),
       onPrev: goPrev,
       onNext: goNext,
-      glowNext: false,
+      glowNext: true,
     });
   }
 
   /* S18 – "1/2 of bigger > 1/2 of smaller". Highlight bigger half + label. */
   function buildScreen18() {
     const lines = [getText('content-ui.dialogs.s18_line_1', {}, appState.language)];
-    schedulePassiveAdvance(19, 4000, lines);
     const smallerLabel = getText('standard-ui.labels.smaller_half', {}, appState.language);
     const biggerLabel = getText('standard-ui.labels.bigger_half', {}, appState.language);
-    const smallHalf = appState.pickedHalfSmall != null ? appState.pickedHalfSmall : 0;
-    const largeHalf = appState.pickedHalfLarge != null ? appState.pickedHalfLarge : 0;
+    const smallHalf = selectedSmallHalf();
+    const largeHalf = selectedLargeHalf();
 
     const stage = h(
       'div',
@@ -1375,20 +1490,18 @@
       character: 'paheli',
       lines: lines,
       activityArea: stage,
-      footerCenter: '',
+      footerCenter: 'Tap » to continue.',
       canPrev: canGoPrev(appState),
-      canNext: appState.navBackMode ? canGoNext(appState) : false,
+      canNext: canGoNext(appState),
       onPrev: goPrev,
       onNext: goNext,
-      glowNext: false,
+      glowNext: true,
     });
   }
 
   /* S19 – "Same fraction can show different amounts if wholes differ" */
   function buildScreen19() {
     const lines = [getText('content-ui.dialogs.s19_line_1', {}, appState.language)];
-    schedulePassiveAdvance(20, 4000, lines);
-
     const stage = h(
       'div',
       { className: 'activity-stage' },
@@ -1406,26 +1519,25 @@
       character: 'boojho',
       lines: lines,
       activityArea: stage,
-      footerCenter: '',
+      footerCenter: 'Tap » to continue.',
       canPrev: canGoPrev(appState),
-      canNext: appState.navBackMode ? canGoNext(appState) : false,
+      canNext: canGoNext(appState),
       onPrev: goPrev,
       onNext: goNext,
-      glowNext: false,
+      glowNext: true,
     });
   }
 
   /* S20 – "Not fair to compare these fractions" */
   function buildScreen20() {
     const lines = [getText('content-ui.dialogs.s20_line_1', {}, appState.language)];
-    schedulePassiveAdvance(21, 4000, lines);
-
     const stage = h(
       'div',
       { className: 'activity-stage' },
       bothBarsStack({
         shadedSmall: appState.pickedHalfSmall != null ? appState.pickedHalfSmall : 0,
         shadedLarge: appState.pickedHalfLarge != null ? appState.pickedHalfLarge : 0,
+        outlinePulse: true,
         showSmallerBiggerLabels: true,
       })
     );
@@ -1434,26 +1546,25 @@
       character: 'boojho',
       lines: lines,
       activityArea: stage,
-      footerCenter: '',
+      footerCenter: 'Tap » to continue.',
       canPrev: canGoPrev(appState),
-      canNext: appState.navBackMode ? canGoNext(appState) : false,
+      canNext: canGoNext(appState),
       onPrev: goPrev,
       onNext: goNext,
-      glowNext: false,
+      glowNext: true,
     });
   }
 
   /* S21 – Rule: "Fractions can be compared fairly only when…" */
   function buildScreen21() {
     const lines = [getText('content-ui.dialogs.s21_line_1', {}, appState.language)];
-    schedulePassiveAdvance(22, 4000, lines);
-
     const stage = h(
       'div',
       { className: 'activity-stage' },
       bothBarsStack({
         shadedSmall: appState.pickedHalfSmall != null ? appState.pickedHalfSmall : 0,
         shadedLarge: appState.pickedHalfLarge != null ? appState.pickedHalfLarge : 0,
+        outlinePulse: true,
         showSmallerBiggerLabels: true,
       })
     );
@@ -1462,12 +1573,12 @@
       character: 'paheli',
       lines: lines,
       activityArea: stage,
-      footerCenter: '',
+      footerCenter: 'Tap » to continue.',
       canPrev: canGoPrev(appState),
-      canNext: appState.navBackMode ? canGoNext(appState) : false,
+      canNext: canGoNext(appState),
       onPrev: goPrev,
       onNext: goNext,
-      glowNext: false,
+      glowNext: true,
     });
   }
 
@@ -1477,12 +1588,14 @@
 
   /* S22 – Make Same Size: tap a bar to select, then tap CTA to resize. */
   function buildScreen22() {
-    const lines = [getText('content-ui.dialogs.s22_line_1', {}, appState.language)];
+    const lines = appState.wholesNormalized
+      ? [
+          getText('content-ui.dialogs.s23_line_1', {}, appState.language),
+          getText('content-ui.dialogs.s23_line_2', {}, appState.language),
+        ]
+      : [getText('content-ui.dialogs.s22_line_1', {}, appState.language)];
     const hint = getText('content-ui.dialogs.s22_hint', {}, appState.language);
     const ctaLabel = getText('standard-ui.buttons.make_same_size', {}, appState.language);
-    if (appState.wholesNormalized && !appState.resizingNow) {
-      schedulePassiveAdvance(23, 4000, lines);
-    }
 
     const onSelectBar = (which) => {
       if (appState.wholesNormalized) return;
@@ -1501,7 +1614,13 @@
       });
       scheduleAuto(1200, () => {
         if (window.sound) window.sound.playCorrectSound();
-        setState({ resizingNow: false });
+        const equalizedSize = selectedBar === 'large' ? 'small' : 'large';
+        goToStep(23, {
+          resizingNow: false,
+          wholesNormalized: true,
+          equalizedSize,
+          navBackMode: false,
+        });
       });
     };
 
@@ -1521,7 +1640,7 @@
           parts: 2,
           shadedIndex: appState.pickedHalfSmall != null ? appState.pickedHalfSmall : 0,
           dimUnshaded: !appState.selectedBarForResize,
-          outlinePulse: appState.selectedBarForResize === 'small' && !appState.wholesNormalized,
+          outlinePulse: !appState.wholesNormalized && (appState.selectedBarForResize === 'small' || !appState.selectedBarForResize),
           selected: appState.selectedBarForResize === 'small' && !appState.wholesNormalized,
           normalized: smallIsLarge,
           resizeAnimation: appState.resizingNow && appState.selectedBarForResize === 'small'
@@ -1536,7 +1655,7 @@
           parts: 2,
           shadedIndex: appState.pickedHalfLarge != null ? appState.pickedHalfLarge : 0,
           dimUnshaded: !appState.selectedBarForResize,
-          outlinePulse: appState.selectedBarForResize === 'large' && !appState.wholesNormalized,
+          outlinePulse: !appState.wholesNormalized && (appState.selectedBarForResize === 'large' || !appState.selectedBarForResize),
           selected: appState.selectedBarForResize === 'large' && !appState.wholesNormalized,
           resizeAnimation: appState.resizingNow && appState.selectedBarForResize === 'large'
             ? { fromSize: 460, toSize: 300, duration: '1.2s' }
@@ -1562,16 +1681,12 @@
       character: 'paheli',
       lines: lines,
       activityArea: stage,
-      footerCenter: appState.wholesNormalized ? '' : hint,
+      footerCenter: appState.wholesNormalized ? 'Tap » to continue.' : hint,
       canPrev: canGoPrev(appState),
-      canNext: appState.resizingNow
-        ? false
-        : (appState.wholesNormalized
-          ? (appState.navBackMode ? canGoNext(appState) : false)
-          : canGoNext(appState)),
+      canNext: appState.resizingNow ? false : canGoNext(appState),
       onPrev: goPrev,
       onNext: goNext,
-      glowNext: !appState.wholesNormalized,
+      glowNext: appState.wholesNormalized,
     });
   }
 
@@ -1583,7 +1698,8 @@
     ];
     const hint = getText('content-ui.dialogs.s23_hint', {}, appState.language);
     const equalizedSmall = appState.equalizedSize === 'small';
-    const li = appState.pickedHalfSmall != null ? appState.pickedHalfSmall : 0;
+    const li = selectedSmallHalf();
+    const ri = selectedLargeHalf();
 
     const stage = h(
       'div',
@@ -1605,7 +1721,7 @@
           id: 'large-s23-intro',
           size: equalizedSmall ? 'small' : 'large',
           parts: 2,
-          shadedIndex: li,
+          shadedIndex: ri,
           dimUnshaded: true,
           outlinePulse: true,
           fractionLabel: { num: '1', den: '2' },
@@ -1689,7 +1805,10 @@
         : null;
     /* segment index to glow on both bars while they're overlapping */
     const glowSeg = appState.s23OverlapPhase === 'animating'
-      ? (appState.pickedHalfSmall != null ? appState.pickedHalfSmall : 0)
+      ? selectedSmallHalf()
+      : null;
+    const largeGlowSeg = appState.s23OverlapPhase === 'animating'
+      ? selectedLargeHalf()
       : null;
 
     const strip = SymbolStrip({
@@ -1716,14 +1835,14 @@
           id: 'small-s23',
           size: 'small',
           parts: 2,
-          shadedIndex: appState.pickedHalfSmall != null ? appState.pickedHalfSmall : 0,
+          shadedIndex: selectedSmallHalf(),
           dimUnshaded: true,
           normalized: !equalizedSmall,
           fractionLabel: { num: '1', den: '2' },
           pulseSegment: glowSeg,
           segmentSlide: slideOpts
             ? {
-              index: glowSeg != null ? glowSeg : (appState.pickedHalfSmall != null ? appState.pickedHalfSmall : 0),
+              index: glowSeg != null ? glowSeg : selectedSmallHalf(),
               dx: slideOpts.dx,
               dy: slideOpts.dy,
               duration: slideOpts.duration,
@@ -1736,12 +1855,15 @@
           id: 'large-s23',
           size: equalizedSmall ? 'small' : 'large',
           parts: 2,
-          shadedIndex: appState.pickedHalfSmall != null ? appState.pickedHalfSmall : 0,
+          shadedIndex: selectedLargeHalf(),
           dimUnshaded: true,
           fractionLabel: { num: '1', den: '2' },
-          pulseSegment: glowSeg,
+          pulseSegment: largeGlowSeg,
         })
-      )
+      ),
+      isCorrectChoice
+        ? FeedbackBanner({ variant: 'correct', text: getText('content-ui.feedback.well_done', {}, appState.language) })
+        : null
     );
 
     return buildActivityShell({
@@ -1763,8 +1885,9 @@
   /* S25 – overlap check */
   function buildScreen25() {
     const lines = [getText('content-ui.dialogs.s25_line_1', {}, appState.language)];
-    schedulePassiveAdvance(26, 5200, lines);
     const equalizedSmall = appState.equalizedSize === 'small';
+    const smallHalf = selectedSmallHalf();
+    const largeHalf = selectedLargeHalf();
 
     const stage = h(
       'div',
@@ -1776,7 +1899,7 @@
           id: 'small-s24',
           size: 'small',
           parts: 2,
-          shadedIndex: appState.pickedHalfSmall != null ? appState.pickedHalfSmall : 0,
+          shadedIndex: smallHalf,
           dimUnshaded: true,
           normalized: !equalizedSmall,
           outlinePulse: true,
@@ -1792,7 +1915,7 @@
           id: 'large-s24',
           size: equalizedSmall ? 'small' : 'large',
           parts: 2,
-          shadedIndex: appState.pickedHalfSmall != null ? appState.pickedHalfSmall : 0,
+          shadedIndex: largeHalf,
           dimUnshaded: true,
           outlinePulse: true,
           fractionLabel: { num: '1', den: '2' },
@@ -1804,12 +1927,12 @@
       character: 'paheli',
       lines: lines,
       activityArea: stage,
-      footerCenter: '',
+      footerCenter: 'Tap » to continue.',
       canPrev: canGoPrev(appState),
-      canNext: appState.navBackMode ? canGoNext(appState) : false,
+      canNext: canGoNext(appState),
       onPrev: goPrev,
       onNext: goNext,
-      glowNext: false,
+      glowNext: true,
     });
   }
 
@@ -1817,10 +1940,9 @@
   function buildScreen26() {
     const lines = [getText('content-ui.dialogs.s25_line_1', {}, appState.language)];
 
-    if (!appState.navBackMode && autoTimer == null && ensureTypewriter(lines)) {
-      scheduleAuto(4200, () => goToStep(27));
-    }
     const equalizedSmall = appState.equalizedSize === 'small';
+    const smallHalf = selectedSmallHalf();
+    const largeHalf = selectedLargeHalf();
 
     const stage = h(
       'div',
@@ -1832,7 +1954,7 @@
           id: 'small-s25',
           size: 'small',
           parts: 2,
-          shadedIndex: appState.pickedHalfSmall != null ? appState.pickedHalfSmall : 0,
+          shadedIndex: smallHalf,
           dimUnshaded: true,
           normalized: !equalizedSmall,
           fractionLabel: { num: '1', den: '2' },
@@ -1847,24 +1969,23 @@
           id: 'large-s25',
           size: equalizedSmall ? 'small' : 'large',
           parts: 2,
-          shadedIndex: appState.pickedHalfSmall != null ? appState.pickedHalfSmall : 0,
+          shadedIndex: largeHalf,
           dimUnshaded: true,
           fractionLabel: { num: '1', den: '2' },
         })
-      ),
-      FeedbackBanner({ variant: 'correct', text: getText('content-ui.feedback.well_done', {}, appState.language) })
+      )
     );
 
     return buildActivityShell({
       character: 'paheli',
       lines: lines,
       activityArea: stage,
-      footerCenter: '',
+      footerCenter: 'Tap » to continue.',
       canPrev: canGoPrev(appState),
-      canNext: appState.navBackMode ? canGoNext(appState) : false,
+      canNext: canGoNext(appState),
       onPrev: goPrev,
       onNext: goNext,
-      glowNext: false,
+      glowNext: true,
     });
   }
 
@@ -1872,6 +1993,8 @@
   function buildScreen27() {
     const lines = [getText('content-ui.dialogs.s26_line_1', {}, appState.language)];
     const equalizedSmall = appState.equalizedSize === 'small';
+    const smallHalf = selectedSmallHalf();
+    const largeHalf = selectedLargeHalf();
 
     const stage = h(
       'div',
@@ -1883,7 +2006,7 @@
           id: 'small-s26',
           size: 'small',
           parts: 2,
-          shadedIndex: appState.pickedHalfSmall != null ? appState.pickedHalfSmall : 0,
+          shadedIndex: smallHalf,
           dimUnshaded: true,
           normalized: !equalizedSmall,
           outlinePulse: true,
@@ -1899,7 +2022,7 @@
           id: 'large-s26',
           size: equalizedSmall ? 'small' : 'large',
           parts: 2,
-          shadedIndex: appState.pickedHalfSmall != null ? appState.pickedHalfSmall : 0,
+          shadedIndex: largeHalf,
           dimUnshaded: true,
           outlinePulse: true,
           fractionLabel: { num: '1', den: '2' },
@@ -1988,21 +2111,31 @@
   /* S30 – "Same size?" yes/no, expectedValue='Yes' */
   function buildScreen30() {
     const isWrongRetry = appState.feedback === 'wrong';
-    const lines = isWrongRetry
+    const isCorrect = appState.sameSizeAns2 === 'Yes';
+    const lines = isCorrect
+      ? [
+          getText('content-ui.dialogs.s29_line_1', {}, appState.language),
+          getText('content-ui.dialogs.s29_line_2', {}, appState.language),
+        ]
+      : isWrongRetry
       ? [getText('content-ui.dialogs.s11_line_1', {}, appState.language)]
       : [
           getText('content-ui.dialogs.s28_line_1', {}, appState.language),
           getText('content-ui.dialogs.s28_line_2', {}, appState.language),
         ];
-    if (appState.sameSizeAns2 === 'Yes') {
-      schedulePassiveAdvance(31, 2000, lines);
-    }
 
     const onSelect = (val) => {
       if (window.sound) window.sound.playClickSound();
       if (val === 'Yes') {
         if (window.sound) window.sound.playCorrectSound();
-        setState({ sameSizeAns2: 'Yes', feedback: 'correct', wrongValue: null });
+        setState({
+          sameSizeAns2: 'Yes',
+          feedback: 'correct',
+          wrongValue: null,
+          overlapPhase: 'idle',
+          s29SlideDelta: null,
+          navBackMode: false,
+        });
       } else {
         if (window.sound) window.sound.playWrongSound();
         setState({ feedback: 'wrong', wrongValue: 'No' });
@@ -2023,6 +2156,8 @@
       disabled: appState.sameSizeAns2 === 'Yes',
       onSelect: onSelect,
     });
+    const delta = appState.s29SlideDelta;
+    const slideActive = delta != null && appState.overlapPhase === 'animating';
 
     const stage = h(
       'div',
@@ -2031,22 +2166,28 @@
         'div',
         { className: 'bars-stack' },
         ChocolateBar({
-          id: 'oneHalf-s28',
+          id: 'oneHalf-s29',
           size: 'large',
           parts: 2,
           shadedIndex: 0,
           dimUnshaded: true,
-          outlinePulse: isWrongRetry,
+          outlinePulse: isCorrect ? appState.overlapPhase !== 'idle' : isWrongRetry,
+          pulseSegment: slideActive ? 0 : null,
           fractionLabel: { num: '1', den: '2' },
         }),
         ChocolateBar({
-          id: 'oneThird-s28',
+          id: 'oneThird-s29',
           size: 'large',
           parts: 3,
           shadedIndex: 0,
           dimUnshaded: true,
-          outlinePulse: isWrongRetry,
+          outlinePulse: isCorrect ? appState.overlapPhase !== 'idle' : isWrongRetry,
           fractionLabel: { num: '1', den: '3' },
+          pulseSegment: slideActive ? 0 : null,
+          sliding: slideActive
+            ? { dx: delta.dx, dy: delta.dy, scale: 1, keyframes: true, origin: 'top left', duration: OVERLAP_ANIMATION_DURATION }
+            : null,
+          faded: appState.overlapPhase === 'animating',
         })
       ),
       h('div', { className: 'activity-controls' }, optionRow)
@@ -2056,12 +2197,12 @@
       character: 'paheli',
       lines: lines,
       activityArea: stage,
-      footerCenter: getText('standard-ui.instructions.tap_correct', {}, appState.language),
+      footerCenter: isCorrect && appState.overlapPhase !== 'done' ? getText('standard-ui.instructions.watch', {}, appState.language) : (isCorrect ? 'Tap » to compare the fractions.' : getText('standard-ui.instructions.tap_correct', {}, appState.language)),
       canPrev: canGoPrev(appState),
-      canNext: false,
+      canNext: isCorrect && canGoNext(appState),
       onPrev: goPrev,
       onNext: goNext,
-      glowNext: appState.sameSizeAns2 !== 'Yes',
+      glowNext: isCorrect && appState.overlapPhase === 'done',
     });
   }
 
@@ -2120,23 +2261,21 @@
     });
   }
 
-  /* S32 – choose '>' between 1/2 and 1/3 */
+  /* S32 – tap the bigger fraction (1/2 or 1/3); operator shown as feedback only */
   function buildScreen32() {
     const lines = [
       getText('content-ui.dialogs.s30_line_1', {}, appState.language),
       getText('content-ui.dialogs.s30_line_2', {}, appState.language),
     ];
-    const hint = getText('standard-ui.instructions.choose_symbol', {}, appState.language);
+    const hint = getText('standard-ui.instructions.tap_bigger', {}, appState.language);
+    const isCorrect = appState.comparedSymbol2 === '>';
+    const overlapAnimating =
+      appState.s30OverlapPhase === 'pending' || appState.s30OverlapPhase === 'animating';
 
-    const onSelect = (val) => {
+    const onTapBar = (which) => {
+      if (overlapAnimating || isCorrect) return;
       if (window.sound) window.sound.playClickSound();
-      if (
-        appState.s30OverlapPhase === 'pending'
-        || appState.s30OverlapPhase === 'animating'
-      ) {
-        return;
-      }
-      if (val === '>') {
+      if (which === 'half') {
         if (window.sound) window.sound.playCorrectSound();
         setState({
           comparedSymbol2: '>',
@@ -2150,36 +2289,30 @@
         if (window.sound) window.sound.playWrongSound();
         setState({
           feedback: 'wrong',
-          wrongValue: val,
+          wrongValue: '<',
           s30OverlapPhase: 'pending',
           s30OverlapDelta: null,
           s30OverlapVariant: 'wrong',
         });
-        /* reset clears after the full overlap animation finishes, not immediately */
       }
     };
 
-    const overlapAnimating =
-      appState.s30OverlapPhase === 'pending' || appState.s30OverlapPhase === 'animating';
     const d30 = appState.s30OverlapDelta;
-    /* always full-reach animation regardless of correct/wrong */
     const slide30 =
       d30 != null && appState.s30OverlapPhase === 'animating'
         ? { dx: d30.dx, dy: d30.dy, misalign: false, duration: OVERLAP_ANIMATION_DURATION }
         : null;
-    /* segment to glow on both bars while overlapping */
     const glowSeg30 = appState.s30OverlapPhase === 'animating' ? 0 : null;
 
-    const strip30 = SymbolStrip({
-      selectedValue: appState.comparedSymbol2,
-      correctValue: appState.comparedSymbol2 === '>' ? '>' : null,
-      wrongValue: appState.wrongValue,
-      pulsate: appState.comparedSymbol2 !== '>',
-      disabled: appState.comparedSymbol2 === '>',
-      interactionLocked: overlapAnimating,
-      collapseToSelected: appState.comparedSymbol2 === '>',
-      onSelect: onSelect,
-    });
+    const symbolSlot = h('div', { className: 'symbol-strip-slot' }, SymbolStrip({
+      selectedValue: isCorrect ? '>' : null,
+      correctValue: isCorrect ? '>' : null,
+      wrongValue: appState.wrongValue === '<' ? '<' : null,
+      pulsate: false,
+      disabled: true,
+      collapseToSelected: isCorrect,
+      onSelect: () => {},
+    }));
 
     const stage = h(
       'div',
@@ -2193,24 +2326,22 @@
           parts: 2,
           shadedIndex: 0,
           dimUnshaded: true,
-          pulsateHalves: appState.comparedSymbol2 !== '>'
-            && appState.s30OverlapPhase === 'idle',
+          outlinePulse: !isCorrect && !overlapAnimating,
           fractionLabel: { num: '1', den: '2' },
           pulseSegment: glowSeg30,
-          outlinePulse: appState.s30OverlapPhase === 'animating',
+          onTapBar: !isCorrect && !overlapAnimating ? () => onTapBar('half') : null,
         }),
-        h('div', { className: 'symbol-strip-slot' }, strip30),
+        symbolSlot,
         ChocolateBar({
           id: 'oneThird-s30',
           size: 'large',
           parts: 3,
           shadedIndex: 0,
           dimUnshaded: true,
-          pulsateHalves: appState.comparedSymbol2 !== '>'
-            && appState.s30OverlapPhase === 'idle',
+          outlinePulse: !isCorrect && !overlapAnimating,
           fractionLabel: { num: '1', den: '3' },
           pulseSegment: glowSeg30,
-          outlinePulse: appState.s30OverlapPhase === 'animating',
+          onTapBar: !isCorrect && !overlapAnimating ? () => onTapBar('third') : null,
           segmentSlide: slide30
             ? { index: 0, dx: slide30.dx, dy: slide30.dy, duration: slide30.duration, misalign: false }
             : null,
@@ -2223,12 +2354,14 @@
       lines: lines,
       allowOverlapOverflow: true,
       activityArea: stage,
-      footerCenter: appState.comparedSymbol2 === '>' ? '' : hint,
+      footerCenter: isCorrect
+        ? (appState.s30OverlapPhase === 'done' ? 'Tap » to continue.' : getText('standard-ui.instructions.watch', {}, appState.language))
+        : hint,
       canPrev: canGoPrev(appState),
-      canNext: appState.comparedSymbol2 === '>' ? false : canGoNext(appState),
+      canNext: isCorrect && canGoNext(appState),
       onPrev: goPrev,
       onNext: goNext,
-      glowNext: appState.comparedSymbol2 !== '>',
+      glowNext: isCorrect && appState.s30OverlapPhase === 'done',
     });
   }
 
@@ -2237,8 +2370,6 @@
     const lines = [
       getText('content-ui.dialogs.s31_line_1', {}, appState.language),
     ];
-    schedulePassiveAdvance(34, 4000, lines);
-
     const stage = h(
       'div',
       { className: 'activity-stage' },
@@ -2278,12 +2409,12 @@
       character: 'paheli',
       lines: lines,
       activityArea: stage,
-      footerCenter: '',
+      footerCenter: 'Tap » to continue.',
       canPrev: canGoPrev(appState),
-      canNext: appState.navBackMode ? canGoNext(appState) : false,
+      canNext: canGoNext(appState),
       onPrev: goPrev,
       onNext: goNext,
-      glowNext: false,
+      glowNext: true,
     });
   }
 
@@ -2322,7 +2453,6 @@
           parts: 3,
           shadedIndex: 0,
           dimUnshaded: true,
-          pulseSegment: 0,
           fractionLabel: { num: '1', den: '3' },
         })
       )
@@ -2414,6 +2544,7 @@
         wholesNormalized: false, equalizedSize: null,
         overlapPhase: 'idle',
         s15SlideDelta: null, s29SlideDelta: null,
+        compareHalfSmall: null, compareHalfLarge: null,
         s23OverlapPhase: 'idle', s23OverlapDelta: null, s23OverlapVariant: null,
         symbolStripCollapsed: false,
         s30OverlapPhase: 'idle', s30OverlapDelta: null, s30OverlapVariant: null,
@@ -2464,6 +2595,43 @@
     const sr = sourceAnchorEl.getBoundingClientRect();
     const tr = targetAnchorEl.getBoundingClientRect();
     return { dx: (tr.left - sr.left) / sf, dy: (tr.top - sr.top) / sf };
+  }
+
+  function flyingHalfOverlay(delta) {
+    if (!delta || delta.sourceLeft == null || delta.sourceTop == null) return null;
+    return h('div', {
+      className: 'flying-half-overlay',
+      style: {
+        left: delta.sourceLeft + 'px',
+        top: delta.sourceTop + 'px',
+        width: delta.sourceWidth + 'px',
+        height: delta.sourceHeight + 'px',
+        '--fly-dx': (delta.dx || 0) + 'px',
+        '--fly-dy': (delta.dy || 0) + 'px',
+        '--fly-duration': OVERLAP_ANIMATION_DURATION,
+      },
+      'aria-hidden': 'true',
+    });
+  }
+
+  function selectedHalfOverlay(delta, which) {
+    if (!delta) return null;
+    const prefix = which === 'target' ? 'target' : 'source';
+    const left = delta[prefix + 'Left'];
+    const top = delta[prefix + 'Top'];
+    const width = delta[prefix + 'Width'];
+    const height = delta[prefix + 'Height'];
+    if (left == null || top == null || width == null || height == null) return null;
+    return h('div', {
+      className: 'selected-half-overlay',
+      style: {
+        left: left + 'px',
+        top: top + 'px',
+        width: width + 'px',
+        height: height + 'px',
+      },
+      'aria-hidden': 'true',
+    });
   }
 
   /* ---------------- App switch ---------------- */
@@ -2525,7 +2693,7 @@
     root.innerHTML = '';
     if (tree) root.appendChild(tree);
 
-    /* S15/S29: measure source vs target top-left delta, then run keyframe overlap slide. */
+    /* S15/S29: measure source vs target delta, then run keyframe overlap slide. */
     if (
       appState.step === 15 &&
       appState.overlapPhase === 'idle' &&
@@ -2538,11 +2706,39 @@
           const small = document.querySelector('[data-bar-id="small-s15"]');
           const large = document.querySelector('[data-bar-id="large-s15"]');
           if (!small || !large) return;
+          const stage = small.closest('.activity-stage');
+          if (!stage) return;
+          const smallIndex = st.compareHalfSmall != null
+            ? st.compareHalfSmall
+            : (st.pickedHalfSmall != null ? st.pickedHalfSmall : 0);
+          const largeIndex = st.compareHalfLarge != null
+            ? st.compareHalfLarge
+            : (st.pickedHalfLarge != null ? st.pickedHalfLarge : 0);
+          const smallSegment = small.querySelector('g[data-segment-index="' + smallIndex + '"]');
+          const largeSegment = large.querySelector('g[data-segment-index="' + largeIndex + '"]');
+          if (!smallSegment || !largeSegment) return;
+          const smallAnchor = smallSegment.querySelector('rect') || smallSegment;
+          const largeAnchor = largeSegment.querySelector('rect') || largeSegment;
+          const delta = segmentOverlapDeltaClientPx(smallAnchor, largeAnchor);
           const sf15 = getScaleFactor();
-          const sr = small.getBoundingClientRect();
-          const lr = large.getBoundingClientRect();
+          const sourceRect = smallAnchor.getBoundingClientRect();
+          const targetRect = largeAnchor.getBoundingClientRect();
+          const stageRect = stage.getBoundingClientRect();
           setState({
-            s15SlideDelta: { dx: (lr.left - sr.left) / sf15, dy: (lr.top - sr.top) / sf15 },
+            s15SlideDelta: {
+              dx: delta.dx,
+              dy: delta.dy,
+              smallIndex: smallIndex,
+              largeIndex: largeIndex,
+              sourceLeft: (sourceRect.left - stageRect.left) / sf15,
+              sourceTop: (sourceRect.top - stageRect.top) / sf15,
+              sourceWidth: sourceRect.width / sf15,
+              sourceHeight: sourceRect.height / sf15,
+              targetLeft: (targetRect.left - stageRect.left) / sf15,
+              targetTop: (targetRect.top - stageRect.top) / sf15,
+              targetWidth: targetRect.width / sf15,
+              targetHeight: targetRect.height / sf15,
+            },
             overlapPhase: 'animating',
           });
           scheduleAuto(OVERLAP_ANIMATION_MS, () => setState({ overlapPhase: 'done' }));
@@ -2550,14 +2746,15 @@
       });
     }
     if (
-      appState.step === 31 &&
+      (appState.step === 30 || appState.step === 31) &&
+      appState.sameSizeAns2 === 'Yes' &&
       appState.overlapPhase === 'idle' &&
       appState.s29SlideDelta == null
     ) {
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           const st = typeof window.__getAppState === 'function' ? window.__getAppState() : null;
-          if (!st || st.step !== 31 || st.overlapPhase !== 'idle' || st.s29SlideDelta != null) return;
+          if (!st || (st.step !== 30 && st.step !== 31) || st.sameSizeAns2 !== 'Yes' || st.overlapPhase !== 'idle' || st.s29SlideDelta != null) return;
           const source = document.querySelector('[data-bar-id="oneThird-s29"]');
           const target = document.querySelector('[data-bar-id="oneHalf-s29"]');
           if (!source || !target) return;
@@ -2586,10 +2783,14 @@
           const leftWrap = document.querySelector('[data-bar-id="small-s23"]');
           const rightWrap = document.querySelector('[data-bar-id="large-s23"]');
           if (!leftWrap || !rightWrap) return;
-          const li = st.pickedHalfSmall != null ? st.pickedHalfSmall : 0;
-          const ri = st.pickedHalfLarge != null ? st.pickedHalfLarge : 0;
+          const li = st.compareHalfSmall != null
+            ? st.compareHalfSmall
+            : (st.pickedHalfSmall != null ? st.pickedHalfSmall : 0);
+          const ri = st.compareHalfLarge != null
+            ? st.compareHalfLarge
+            : (st.pickedHalfLarge != null ? st.pickedHalfLarge : 0);
           const leftG = leftWrap.querySelector('g[data-segment-index="' + li + '"]');
-          const rightG = rightWrap.querySelector('g[data-segment-index="' + li + '"]');
+          const rightG = rightWrap.querySelector('g[data-segment-index="' + ri + '"]');
           if (!leftG || !rightG) return;
           const leftInner = leftG.querySelector('.chocolate-segment-body');
           if (!leftInner) return;
@@ -2675,11 +2876,6 @@
             if (!cur30 || cur30.step !== 32 || cur30.navBackMode) return;
             if (variant30 === 'correct' && cur30.comparedSymbol2 === '>') {
               setState({ s30OverlapPhase: 'done' });
-              scheduleAuto(1000, () => {
-                const cx = typeof window.__getAppState === 'function' ? window.__getAppState() : null;
-                if (!cx || cx.step !== 32 || cx.navBackMode) return;
-                goToStep(33, { navBackMode: false });
-              });
             } else {
               /* wrong answer: full animation has played, now reset for retry */
               setState({
@@ -2715,6 +2911,8 @@
         appState.pickedPartsBig = target === 6 ? null : 2;
         appState.pickedHalfSmall = 1;
         appState.pickedHalfLarge = target === 7 || target === 8 ? null : 0;
+        appState.compareHalfSmall = appState.pickedHalfSmall;
+        appState.compareHalfLarge = appState.pickedHalfLarge;
         appState.sameSizeAns = 'No';
         appState.sameSizeAns2 = 'Yes';
         appState.comparedSymbol = target >= 24 ? '=' : null;

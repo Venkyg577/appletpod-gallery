@@ -32,6 +32,7 @@ const appData = {
         tap_choose_parts: "Choose the correct number of parts.",
         tap_a_half: "Tap one of the two equal parts.",
         choose_symbol: "Choose the correct symbol.",
+        tap_bigger: "Tap the bigger fraction.",
         tap_chocolate: "Tap a chocolate bar.",
         tap_make_same: "Tap a chocolate bar, then tap \u2018Make same size\u2019.",
         watch: "Watch carefully \u2026",
@@ -45,7 +46,7 @@ const appData = {
 
         s2_line_1: "Here is my chocolate bar.",
         s2_line_2: "Let\u2019s divide it to share.",
-        s2_hint: "Tap » to split the chocolate into two equal parts.",
+        s2_hint: "Tap » to divide the chocolate.",
 
         s3_line_1: "To make <strong>1/2</strong> of this chocolate,",
         s3_line_2: "How many equal parts should we divide it into?",
@@ -64,12 +65,11 @@ const appData = {
         s7_line_2: "Now choose one of the two equal parts.",
 
         s9_line_1: "This is <strong>1 out of 2</strong> equal parts.",
-        s9_line_2: "This is called <strong>one-half</strong>.",
+        s9_line_2: "This is <strong>also</strong> called <strong>one-half</strong>.",
         s9_hint: "Tap » to compare both one-half parts.",
 
-        s10_line_1: "Both are <strong>one-half</strong>.",
-        s10_line_2: "But look at the <strong>whole</strong> chocolate bars.",
-        s10_line_3: "Are they the same size?",
+        s10_line_1: "Both are <strong>one-half</strong>, but they come from different <strong>wholes</strong>.",
+        s10_line_2: "Are the two <strong>wholes</strong> the same size?",
 
         s11_line_1: "Look carefully at the size of the <strong>whole</strong> chocolate bars.",
 
@@ -120,9 +120,9 @@ const appData = {
 
         s27_line_1: "Here are two chocolates showing <strong>1/2</strong> and <strong>1/3</strong>.",
         s27_line_2: "Can we find which one is greater?",
-        s27_hint: "",
+        s27_hint: "Tap » to know.",
 
-        s28_line_1: "Before we compare, let\u2019s use our rule.",
+        s28_line_1: "Before we compare,<br>let\u2019s use our rule.",
         s28_line_2: "Are these chocolates the <strong>same size</strong>?",
 
         s29_line_1: "Great! The <strong>wholes</strong> are the <strong>same size</strong>.",
@@ -146,7 +146,7 @@ const appData = {
       },
       feedback: {
         try_again: "Not quite \u2014 try again!",
-        wrong_partition: "That\u2019s not right \u2014 we want <strong>1/2</strong>.",
+        wrong_partition: "To make <strong>1/2</strong>, the whole must be divided into <strong>2</strong> equal parts\u2014not 3 or 5. Try again.",
         wrong_yesno: "Look carefully and try again.",
         wrong_symbol: "Look at the shaded parts again.",
         nice: "Nice!",
@@ -186,6 +186,7 @@ const appData = {
         tap_choose_parts: "Pilih jumlah bagian yang benar.",
         tap_a_half: "Ketuk salah satu dari dua bagian yang sama.",
         choose_symbol: "Pilih simbol yang benar.",
+        tap_bigger: "Ketuk pecahan yang lebih besar.",
         tap_chocolate: "Ketuk batang cokelat.",
         tap_make_same: "Ketuk satu cokelat, lalu ketuk \u2018Samakan ukuran\u2019.",
         watch: "Perhatikan dengan saksama \u2026",
@@ -199,7 +200,7 @@ const appData = {
 
         s2_line_1: "Ini batang cokelatku.",
         s2_line_2: "Ayo kita bagi untuk dibagikan.",
-        s2_hint: "Ketuk » untuk membagi cokelat menjadi dua bagian sama.",
+        s2_hint: "Ketuk » untuk membagi cokelat.",
 
         s3_line_1: "Untuk membuat <strong>1/2</strong> dari cokelat ini,",
         s3_line_2: "menjadi berapa bagian sama besar harus kita bagi?",
@@ -218,12 +219,11 @@ const appData = {
         s7_line_2: "Sekarang pilih salah satu dari dua bagian sama tersebut.",
 
         s9_line_1: "Ini adalah <strong>1 dari 2</strong> bagian sama.",
-        s9_line_2: "Ini disebut <strong>satu per dua</strong>.",
+        s9_line_2: "Ini <strong>juga</strong> disebut <strong>satu per dua</strong>.",
         s9_hint: "Ketuk » untuk membandingkan kedua bagian satu per dua.",
 
-        s10_line_1: "Keduanya adalah <strong>satu per dua</strong>.",
-        s10_line_2: "Tapi lihatlah batang cokelat <strong>secara keseluruhan</strong>.",
-        s10_line_3: "Apakah ukurannya sama?",
+        s10_line_1: "Keduanya adalah <strong>satu per dua</strong>, tetapi berasal dari <strong>wholes</strong> yang berbeda.",
+        s10_line_2: "Apakah kedua <strong>wholes</strong>-nya berukuran sama?",
 
         s11_line_1: "Lihat dengan saksama ukuran <strong>seluruh</strong> batang cokelat.",
 
@@ -274,7 +274,7 @@ const appData = {
 
         s27_line_1: "Berikut dua cokelat yang menunjukkan <strong>1/2</strong> dan <strong>1/3</strong>.",
         s27_line_2: "Bisakah kita temukan yang mana lebih besar?",
-        s27_hint: "",
+        s27_hint: "Ketuk » untuk melanjutkan.",
 
         s28_line_1: "Sebelum membandingkan, mari gunakan aturan kita.",
         s28_line_2: "Apakah cokelat ini <strong>berukuran sama</strong>?",
@@ -300,7 +300,7 @@ const appData = {
       },
       feedback: {
         try_again: "Belum tepat \u2014 coba lagi!",
-        wrong_partition: "Itu tidak tepat \u2014 kita ingin <strong>1/2</strong>.",
+        wrong_partition: "Untuk membuat <strong>1/2</strong>, seluruh cokelat harus dibagi menjadi <strong>2</strong> bagian sama\u2014bukan 3 atau 5. Coba lagi.",
         wrong_yesno: "Lihat dengan saksama dan coba lagi.",
         wrong_symbol: "Lihat lagi bagian yang diarsir.",
         nice: "Bagus!",

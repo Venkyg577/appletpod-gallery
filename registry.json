@@ -55,6 +55,17 @@
     "thumbnail": null
   },
   {
+    "slug": "cbse-digital-book",
+    "title": "Fractions – Interactive Digital Book",
+    "description": "A page-flip digital book covering CBSE Class 5 fractions, with embedded hotspots that open the Comparing Fractions and Chocolate Fractions applets directly from the relevant pages.",
+    "category": "Mathematics",
+    "grade": "Class 5",
+    "tags": ["fractions", "digital-book", "cbse", "interactive", "page-flip"],
+    "status": "unlisted",
+    "demoUrl": "/cbse-digital-book/",
+    "thumbnail": null
+  },
+  {
     "slug": "chocolate-fractions",
     "title": "Boojho's Chocolate Sharing – Equivalent Fractions",
     "description": "Step-by-step visual exploration where students shade and split chocolate-bar wholes to discover that 1/2 = 2/4 and 1/3 = 2/6 — building a concrete understanding of equivalent fractions through guided interaction.",
