@@ -16,8 +16,8 @@
         height: 100%;
         width: 100%;
         overflow: hidden; /* never scroll — everything fits the viewport */
-        background: radial-gradient(circle at top, #3a3142, #1a151f);
-        color: #f5f1fa;
+        background: radial-gradient(circle at top, #e8dfc8, #c9b99a);
+        color: #2a1f0e;
         font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
       }
 
@@ -37,6 +37,7 @@
 
       /* Each page is the rendered PDF image filling the leaf. */
       .page {
+        position: relative;
         background: #fff;
         overflow: hidden;
       }
@@ -49,89 +50,109 @@
         -webkit-user-drag: none;
       }
 
-      /* ===== INDEX LEAF (first left page of the book) ===== */
+      /* ===== INDEX LEAF — Table of Contents ===== */
       .page.index-page {
-        background: linear-gradient(160deg, #241d2c, #14101a);
-        color: #f5f1fa;
-        padding: 5% 6%;
+        background: #fff;
+        color: #111;
+        padding: 3% 5%;
         display: flex;
         flex-direction: column;
+        font-family: "Times New Roman", Times, Georgia, serif;
+      }
+      .index-header {
+        text-align: center;
+        padding-bottom: 2.5%;
+        margin-bottom: 2%;
+        border-bottom: 1.5px solid #222;
       }
       .index-page h2 {
-        margin: 0 0 2px;
-        font-size: clamp(15px, 2.2vw, 22px);
+        margin: 0 0 1%;
+        font-size: clamp(18px, 2.8vw, 32px);
+        font-weight: 700;
+        color: #111;
+        letter-spacing: 0.01em;
       }
-      .index-page h2 span { color: var(--accent-2); }
+      .index-page h2 .chapter-subject { color: #6c2eb9; }
       .index-page .sub {
-        margin: 0 0 4%;
-        font-size: clamp(10px, 1.25vw, 13px);
-        line-height: 1.45;
-        color: #c9bcdd;
-      }
-      .index-list {
-        flex: 1 1 auto;
-        display: flex;
-        flex-direction: column;
-        gap: 4%;
-        min-height: 0;
-      }
-      .applet-card {
-        display: flex;
-        gap: 10px;
-        background: rgba(124, 77, 255, 0.1);
-        border: 1px solid rgba(124, 77, 255, 0.4);
-        border-radius: 12px;
-        overflow: hidden;
-        cursor: pointer;
-        transition: transform 0.12s ease, border-color 0.2s ease,
-          background 0.2s ease;
-      }
-      .applet-card:hover {
-        border-color: var(--accent-2);
-        background: rgba(124, 77, 255, 0.2);
-        transform: translateY(-2px);
-      }
-      .applet-card .thumb {
-        flex: 0 0 42%;
-        aspect-ratio: 16 / 10;
-        object-fit: cover;
-        background: #11365a;
-      }
-      .applet-card .meta {
-        flex: 1 1 auto;
-        padding: 8px 10px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-      }
-      .applet-card .meta .t {
-        font-size: clamp(11px, 1.25vw, 14px);
-        font-weight: 600;
-        line-height: 1.25;
-      }
-      .applet-card .meta .topic {
-        font-size: clamp(9px, 1vw, 11px);
-        color: #b9a9d6;
-        margin-top: 3px;
+        margin: 0;
+        font-size: clamp(9px, 1.1vw, 12px);
+        color: #555;
+        font-style: italic;
         line-height: 1.3;
       }
-      .applet-card .meta .topic b { color: var(--accent-2); font-weight: 600; }
-      .applet-card .meta .cta {
-        align-self: flex-start;
-        margin-top: 7px;
-        font-size: clamp(9px, 1vw, 11.5px);
-        font-weight: 700;
-        color: #fff;
-        background: var(--accent);
-        padding: 4px 12px;
-        border-radius: 20px;
+      /* TOC rows */
+      .toc-list {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
       }
+      .toc-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 1.8% 0;
+        border-bottom: 1px solid #e0e0e0;
+        cursor: pointer;
+      }
+      .toc-row:hover .toc-topic { color: #6c2eb9; }
+      .toc-row:last-child { border-bottom: none; }
+      .toc-left {
+        display: flex;
+        align-items: baseline;
+        gap: 7px;
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+      .toc-pg {
+        flex: 0 0 auto;
+        font-size: clamp(9px, 1.05vw, 12px);
+        color: #888;
+        font-variant-numeric: tabular-nums;
+        font-family: "Times New Roman", Times, serif;
+        min-width: 2em;
+      }
+      .toc-topic {
+        font-size: clamp(12px, 1.55vw, 17px);
+        color: #111;
+        line-height: 1.2;
+        font-family: "Times New Roman", Times, serif;
+      }
+      /* Applet link — right side */
+      .toc-right {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+      }
+      .toc-applet-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: clamp(8px, 0.95vw, 11px);
+        font-weight: 700;
+        font-family: "Segoe UI", system-ui, sans-serif;
+        color: #1a1228;
+        background: var(--accent-2);
+        padding: 2px 9px;
+        border-radius: 20px;
+        cursor: pointer;
+        border: none;
+        white-space: nowrap;
+        transition: background 0.15s ease, transform 0.1s ease;
+        line-height: 1.7;
+      }
+      .toc-applet-btn:hover { background: #ffc930; transform: scale(1.04); }
       .index-foot {
-        margin-top: 4%;
-        font-size: clamp(9px, 1vw, 11px);
-        color: #9d8fb8;
-        line-height: 1.4;
+        margin-top: 2%;
+        padding-top: 2%;
+        border-top: 1px solid #ddd;
+        font-size: clamp(8px, 0.9vw, 10px);
+        color: #999;
         text-align: center;
+        font-style: italic;
+        font-family: "Times New Roman", Times, serif;
       }
 
       /* ===== Clickable hotspot overlay on a page (percentage-based) ===== */
@@ -214,11 +235,220 @@
         border-radius: 20px;
         font-size: 14px;
         font-variant-numeric: tabular-nums;
+        color: #fff;
         z-index: 30;
         text-align: center;
         max-width: 92vw;
       }
       #hint { bottom: 48px; font-size: clamp(10px, 1.6vh, 13px); pointer-events: none; }
+
+      /* ===== Expandable page picker ===== */
+      #indicator-wrap {
+        position: fixed;
+        bottom: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 30;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+      }
+      #indicator-wrap .pill {
+        position: static;
+        transform: none;
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.15s;
+      }
+      #indicator-wrap .pill:hover { background: rgba(60,50,70,0.92); }
+      #page-picker {
+        background: rgba(43,35,48,0.92);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(124,77,255,0.55);
+        border-radius: 24px;
+        padding: 6px 10px;
+        max-width: 88vw;
+        overflow: hidden;
+        animation: picker-in 0.18s ease;
+      }
+      @keyframes picker-in {
+        from { opacity: 0; transform: scaleX(0.7) scaleY(0.8); }
+        to   { opacity: 1; transform: none; }
+      }
+      #page-picker-inner {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 4px;
+        overflow-x: auto;
+        scrollbar-width: none;
+        max-width: 80vw;
+      }
+      #page-picker-inner::-webkit-scrollbar { display: none; }
+      .pg-btn {
+        flex: 0 0 auto;
+        min-width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255,255,255,0.08);
+        color: #e0d8f0;
+        font-size: 12px;
+        font-variant-numeric: tabular-nums;
+        cursor: pointer;
+        transition: background 0.12s, color 0.12s;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .pg-btn:hover { background: rgba(124,77,255,0.55); color: #fff; }
+      .pg-btn.active { background: #6c2eb9; color: #fff; font-weight: 700; }
+
+      /* ===== Centre spine (gutter) shadow =====
+         StPageFlip's HTML mode turns each of OUR `.page` divs into the leaf
+         itself by adding `stf__item --left/--right` straight onto the same
+         element — so `.page` IS the leaf, not a child of it.
+
+         We paint the gutter as a `::before` on that very leaf, hugging its
+         spine edge. It belongs to the page, rides the 3D transform during a
+         flip (curving away as the page lifts, like a real book gutter), and
+         is clipped by the page's own `overflow:hidden` — never a book-wide
+         overlay.
+
+         Layout per spread:  [ --left page | gutter | --right page ]
+         Left page  → shadow hugs its RIGHT edge.
+         Right page → shadow hugs its LEFT edge. */
+      .page.--left::before,
+      .page.--right::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 9%;
+        pointer-events: none;
+        z-index: 6;
+      }
+      .page.--left::before {
+        right: 0;
+        background: linear-gradient(to right,
+          rgba(0,0,0,0) 0%,
+          rgba(0,0,0,0.08) 55%,
+          rgba(0,0,0,0.30) 100%);
+      }
+      .page.--right::before {
+        left: 0;
+        background: linear-gradient(to left,
+          rgba(0,0,0,0) 0%,
+          rgba(0,0,0,0.08) 55%,
+          rgba(0,0,0,0.30) 100%);
+      }
+      /* index leaf is now white — same gutter as regular pages, no override needed */
+
+      /* ===== Applet modal =====
+         Two states:
+           fitted   — floats over the exact page, no backdrop
+           expanded — grows to fill viewport with dark backdrop      */
+      #applet-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        /* backdrop only shows in expanded state */
+        background: transparent;
+        pointer-events: none;
+      }
+      #applet-modal.open { display: block; }
+
+      #modal-frame-wrap {
+        position: fixed;          /* JS sets top/left/width/height via inline style */
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.55), 0 0 0 1.5px rgba(124,77,255,0.5);
+        background: #fff;
+        pointer-events: all;
+        /* smooth expand/collapse */
+        transition: top 0.35s cubic-bezier(.4,0,.2,1),
+                    left 0.35s cubic-bezier(.4,0,.2,1),
+                    width 0.35s cubic-bezier(.4,0,.2,1),
+                    height 0.35s cubic-bezier(.4,0,.2,1),
+                    border-radius 0.35s ease,
+                    box-shadow 0.35s ease;
+      }
+
+      /* Expanded state — covers full viewport */
+      #applet-modal.expanded #modal-frame-wrap {
+        border-radius: 0;
+        box-shadow: none;
+      }
+      /* Backdrop only in expanded state */
+      #applet-modal.expanded::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: rgba(14,10,20,0.88);
+        backdrop-filter: blur(6px);
+        z-index: -1;
+      }
+
+      #modal-iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        display: block;
+      }
+
+      /* Chrome buttons sit inside the frame, above the iframe */
+      #modal-chrome-top {
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 40px;
+        background: none;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 0 8px;
+        z-index: 10;
+        pointer-events: none;
+      }
+      #modal-close {
+        pointer-events: all;
+        width: 28px; height: 28px;
+        border-radius: 50%;
+        border: 1.5px solid rgba(255,255,255,0.25);
+        background: rgba(20,14,34,0.88);
+        color: #fff;
+        font-size: 13px;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+        transition: background 0.15s ease, transform 0.12s ease;
+      }
+      #modal-close:hover { background: rgba(124,77,255,0.95); transform: scale(1.1); }
+
+      #modal-chrome-bottom {
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 40px;
+        background: none;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 0 8px;
+        z-index: 10;
+        pointer-events: none;
+      }
+      #modal-fullscreen {
+        pointer-events: all;
+        width: 28px; height: 28px;
+        border-radius: 5px;
+        border: 1.5px solid rgba(255,255,255,0.25);
+        background: rgba(20,14,34,0.88);
+        color: #fff;
+        font-size: 14px;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+        transition: background 0.15s ease, transform 0.12s ease;
+      }
+      #modal-fullscreen:hover { background: rgba(124,77,255,0.95); transform: scale(1.1); }
 
     </style>
   </head>
@@ -231,14 +461,32 @@
     </div>
 
     <div class="pill" id="hint"></div>
-    <div class="pill" id="indicator">Page 1 / 15</div>
+    <div id="indicator-wrap">
+      <div class="pill" id="indicator">Page 1 / 15</div>
+      <div id="page-picker" hidden>
+        <div id="page-picker-inner"></div>
+      </div>
+    </div>
+
+    <!-- Applet modal -->
+    <div id="applet-modal" role="dialog" aria-modal="true" aria-label="Interactive Applet">
+      <div id="modal-frame-wrap">
+        <div id="modal-chrome-top">
+          <button id="modal-close" aria-label="Close applet">✕</button>
+        </div>
+        <iframe id="modal-iframe" title="Applet" allowfullscreen></iframe>
+        <div id="modal-chrome-bottom">
+          <button id="modal-fullscreen" aria-label="Full screen">⛶</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Local copy of StPageFlip so it works fully offline -->
-    <script src="book/lib/page-flip.browser.js"></script>
+    <script src="lib/page-flip.browser.js"></script>
     <script>
       // ---- Configuration --------------------------------------------------
       var TOTAL_PAGES = 15;                    // PDF pages
-      var IMG_BASE = "book/pages/page-";
+      var IMG_BASE = "pages/page-";
       var PAGE_RATIO = 1325 / 1723;            // page width / height
 
       // Single source of truth for applets. Each appears (a) as a card on the
@@ -250,8 +498,8 @@
           title: "Comparing Fractions Visually",
           topic: "Comparing wholes · ½ vs ⅓",
           page: 1,
-          src: "/comparing-fractions/",
-          thumb: "book/thumbs/applet1.png",
+          src: "applets/comparing-fractions/index.html",
+          thumb: "thumbs/applet1.png",
           label: "▶ Open: Comparing Fractions",
           hotspot: { top: 27.74, left: 10.57, width: 41.89, height: 18.11 },
         },
@@ -260,8 +508,8 @@
           title: "Equivalent Fractions",
           topic: "Fun with Fraction Kit · ½ = 2⁄4 = 3⁄6",
           page: 2,
-          src: "/chocolate-fractions/",
-          thumb: "book/thumbs/applet2.png",
+          src: "applets/equivalent-fractions/index.html",
+          thumb: "thumbs/applet2.png",
           label: "▶ Open: Equivalent Fractions",
           hotspot: { top: 52.7, left: 66.04, width: 24.15, height: 16.83 },
         },
@@ -275,38 +523,76 @@
 
       function pad(n) { return n < 10 ? "0" + n : "" + n; }
 
+      // ---- Page topics (all 15 PDF pages) ------------------------------------
+      // appletId: links this page entry to an applet (optional)
+      var PAGE_TOPICS = [
+        { pg: 1,  topic: "What is a Fraction?",                    appletId: "applet1" },
+        { pg: 2,  topic: "Equivalent Fractions",                   appletId: "applet2" },
+        { pg: 3,  topic: "Fractions on the Number Line" },
+        { pg: 4,  topic: "Comparing Fractions" },
+        { pg: 5,  topic: "Adding Fractions – Same Denominator" },
+        { pg: 6,  topic: "Adding Fractions – Different Denominators" },
+        { pg: 7,  topic: "Subtracting Fractions – Same Denominator" },
+        { pg: 8,  topic: "Subtracting Fractions – Different Denominators" },
+        { pg: 9,  topic: "Mixed Numbers & Improper Fractions" },
+        { pg: 10, topic: "Multiplying a Fraction by a Whole" },
+        { pg: 11, topic: "Fractions of a Collection" },
+        { pg: 12, topic: "Word Problems – Part I" },
+        { pg: 13, topic: "Word Problems – Part II" },
+        { pg: 14, topic: "Let Us Do – Exercises" },
+        { pg: 15, topic: "Review & Summary" },
+      ];
+
       // ---- Leaf builders --------------------------------------------------
-      // Leaf 0 = the applet index. Leaves 1..15 = PDF pages 1..15.
+      // Leaf 0 = the TOC index. Leaves 1..15 = PDF pages 1..15.
       function buildIndexLeaf() {
         var div = document.createElement("div");
         div.className = "page index-page";
-        div.setAttribute("data-density", "hard"); // stiff like a cover/contents
+        div.setAttribute("data-density", "hard");
 
         var html =
-          '<h2>📚 <span>Interactive Applets</span></h2>' +
-          '<p class="sub">Start an applet right away, or open it later from its ' +
-          "topic while you read the book.</p>" +
-          '<div class="index-list">';
-        APPLETS.forEach(function (ap) {
+          '<div class="index-header">' +
+          '<h2>Chapter 2 &mdash; <span class="chapter-subject">Fractions</span></h2>' +
+          '<p class="sub">Contents &nbsp;&middot;&nbsp; Tap an applet to launch it</p>' +
+          '</div>' +
+          '<div class="toc-list">';
+
+        PAGE_TOPICS.forEach(function (row) {
+          var ap = row.appletId ? APPLETS.find(function(a){ return a.id === row.appletId; }) : null;
+          var right = ap
+            ? '<div class="toc-right"><button class="toc-applet-btn" data-id="' + ap.id + '">▶ ' + ap.title + '</button></div>'
+            : '<div class="toc-right"></div>';
           html +=
-            '<div class="applet-card" data-id="' + ap.id + '">' +
-            '<img class="thumb" src="' + ap.thumb + '" alt="' + ap.title + '" />' +
-            '<div class="meta">' +
-            '<div class="t">' + ap.title + "</div>" +
-            '<div class="topic">' + ap.topic + " · <b>Page " + ap.page + "</b></div>" +
-            '<span class="cta">▶ Start</span>' +
-            "</div></div>";
+            '<div class="toc-row" data-pg="' + row.pg + '">' +
+            '<div class="toc-left">' +
+            '<span class="toc-pg">' + row.pg + '</span>' +
+            '<span class="toc-topic">' + row.topic + '</span>' +
+            '</div>' +
+            right +
+            '</div>';
         });
-        html +=
-          "</div>" +
-          '<div class="index-foot">Turn the page to begin reading →</div>';
+
+        html += '</div><div class="index-foot">Turn the page to begin reading &rarr;</div>';
         div.innerHTML = html;
 
-        // Wire each card to open its applet.
+        // Wire applet badges
         APPLETS.forEach(function (ap) {
-          var card = div.querySelector('[data-id="' + ap.id + '"]');
-          card.addEventListener("click", function () { openApplet(ap); });
+          var btn = div.querySelector('.toc-applet-btn[data-id="' + ap.id + '"]');
+          if (btn) btn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            openApplet(ap, btn);
+          });
         });
+
+        // Wire row clicks → navigate to page
+        div.querySelectorAll('.toc-row[data-pg]').forEach(function (row) {
+          row.addEventListener("click", function (e) {
+            if (e.target.closest('.toc-applet-btn')) return;
+            var pg = parseInt(row.getAttribute('data-pg'), 10);
+            if (pageFlip) pageFlip.flip(pg);
+          });
+        });
+
         return div;
       }
 
@@ -332,7 +618,7 @@
           a.style.height = ap.hotspot.height + "%";
           a.addEventListener("click", function (e) {
             e.preventDefault();
-            openApplet(ap);
+            openApplet(ap, this);
           });
           div.appendChild(a);
         });
@@ -356,10 +642,58 @@
       // ---- Elements -------------------------------------------------------
       var el = document.getElementById("flipbook");
       var indicator = document.getElementById("indicator");
+      var pagePicker = document.getElementById("page-picker");
+      var pagePickerInner = document.getElementById("page-picker-inner");
       var hintEl = document.getElementById("hint");
       var arrowPrev = document.getElementById("arrowPrev");
       var arrowNext = document.getElementById("arrowNext");
       var pageFlip = null;
+      var pickerOpen = false;
+
+      // Build page-number buttons (1..TOTAL_PAGES)
+      for (var _p = 1; _p <= TOTAL_PAGES; _p++) {
+        (function(n) {
+          var b = document.createElement("button");
+          b.className = "pg-btn";
+          b.textContent = n;
+          b.setAttribute("aria-label", "Go to page " + n);
+          b.addEventListener("click", function(e) {
+            e.stopPropagation();
+            closePicker();
+            if (pageFlip) pageFlip.flip(n);
+          });
+          pagePickerInner.appendChild(b);
+        })(_p);
+      }
+
+      function openPicker(currentIdx) {
+        pickerOpen = true;
+        pagePicker.hidden = false;
+        // Mark active button
+        var btns = pagePickerInner.querySelectorAll('.pg-btn');
+        btns.forEach(function(b, i) {
+          b.classList.toggle('active', i + 1 === currentIdx);
+        });
+        // Scroll active button into view
+        var active = pagePickerInner.querySelector('.pg-btn.active');
+        if (active) active.scrollIntoView({ block: 'nearest', inline: 'center' });
+      }
+
+      function closePicker() {
+        pickerOpen = false;
+        pagePicker.hidden = true;
+      }
+
+      indicator.addEventListener("click", function(e) {
+        e.stopPropagation();
+        if (pickerOpen) { closePicker(); return; }
+        var idx = pageFlip ? pageFlip.getCurrentPageIndex() : 1;
+        openPicker(idx);
+      });
+
+      document.addEventListener("click", function() {
+        if (pickerOpen) closePicker();
+      });
 
       // Total leaves = index + all PDF pages.
       var LAST_INDEX = TOTAL_PAGES; // 0-based index of the last leaf
@@ -406,10 +740,9 @@
         } else {
           var pageNo = Math.min(idx, TOTAL_PAGES);
           indicator.textContent = "Page " + pageNo + " / " + TOTAL_PAGES;
-          // Show the chocolate tip only while page 1 is the left page.
           if (idx === 1) {
             hintEl.textContent =
-              "💡 Click the chocolate bars to open the “Comparing Fractions” applet.";
+              '💡 Click the chocolate bars to open the "Comparing Fractions" applet.';
             hintEl.style.display = "block";
           } else {
             hintEl.style.display = "none";
@@ -417,6 +750,10 @@
         }
         arrowPrev.disabled = idx <= 0;
         arrowNext.disabled = idx >= LAST_INDEX;
+        // Keep picker active state in sync
+        pagePickerInner.querySelectorAll('.pg-btn').forEach(function(b, i) {
+          b.classList.toggle('active', i + 1 === idx);
+        });
       }
 
       function rebuild() {
@@ -427,20 +764,115 @@
         createBook();
       }
 
-      // ---- Open applet in a new tab (works on file:// — no server needed) --
-      function openApplet(ap) {
-        window.open(ap.src, "_blank");
-        // Flip the book to the matching topic page so it's waiting when the
-        // user returns to this tab.
-        if (pageFlip) {
-          try { pageFlip.turnToPage(ap.page); } catch (e) {}
+      // ---- Applet modal -------------------------------------------------------
+      var modal    = document.getElementById("applet-modal");
+      var modalIframe = document.getElementById("modal-iframe");
+      var modalClose  = document.getElementById("modal-close");
+      var modalFsBtn  = document.getElementById("modal-fullscreen");
+      var modalWrap   = document.getElementById("modal-frame-wrap");
+
+      var fittedRect = null; // {top,left,width,height} of the source page in viewport
+
+      function setWrapRect(r) {
+        modalWrap.style.top    = r.top    + 'px';
+        modalWrap.style.left   = r.left   + 'px';
+        modalWrap.style.width  = r.width  + 'px';
+        modalWrap.style.height = r.height + 'px';
+      }
+
+      function expandedRect() {
+        var pad = 32;
+        var vw = window.innerWidth, vh = window.innerHeight;
+        // 16:9 fitted inside viewport with padding
+        var w = Math.min(vw - pad*2, (vh - pad*2) * 16/9);
+        var h = w * 9/16;
+        return {
+          top:    (vh - h) / 2,
+          left:   (vw - w) / 2,
+          width:  w,
+          height: h,
+        };
+      }
+
+      // origin: the element that was clicked (hotspot or card), used to find page rect
+      function openApplet(ap, origin) {
+        // Find the page div — fit a 16:9 box inside it, centred
+        var pageEl = origin && origin.closest ? origin.closest('.page') : null;
+        if (pageEl) {
+          var r = pageEl.getBoundingClientRect();
+          // Fit 16:9 inside the page rect with some inset padding
+          var pad = 12;
+          var maxW = r.width  - pad * 2;
+          var maxH = r.height - pad * 2;
+          var w = Math.min(maxW, maxH * 16/9);
+          var h = w * 9/16;
+          fittedRect = {
+            left:   r.left + (r.width  - w) / 2,
+            top:    r.top  + (r.height - h) / 2,
+            width:  w,
+            height: h,
+          };
+        } else {
+          fittedRect = expandedRect();
+        }
+
+        // Start at the page rect (no transition yet — snap into place first)
+        modalWrap.style.transition = 'none';
+        setWrapRect(fittedRect);
+        modal.classList.remove('expanded');
+        modal.classList.add('open');
+        modalIframe.src = ap.src;
+
+        // Update fullscreen icon
+        modalFsBtn.textContent = '⛶';
+        modalClose.focus();
+      }
+
+      function closeApplet() {
+        // Snap back to fitted rect, then hide
+        modal.classList.remove('expanded');
+        modalWrap.style.transition = 'none';
+        if (fittedRect) setWrapRect(fittedRect);
+        // Small delay so the snap happens before display:none
+        setTimeout(function () {
+          modal.classList.remove('open');
+          modalIframe.src = '';
+          fittedRect = null;
+        }, 10);
+      }
+
+      function toggleExpand() {
+        if (modal.classList.contains('expanded')) {
+          // Collapse back to page
+          modalWrap.style.transition = '';
+          modal.classList.remove('expanded');
+          if (fittedRect) setWrapRect(fittedRect);
+          modalFsBtn.textContent = '⛶';
+        } else {
+          // Expand to fill viewport
+          modalWrap.style.transition = '';
+          modal.classList.add('expanded');
+          var er = expandedRect();
+          setWrapRect(er);
+          modalFsBtn.textContent = '⊠';
         }
       }
+
+      modalClose.addEventListener('click', closeApplet);
+      modalFsBtn.addEventListener('click', toggleExpand);
+      document.addEventListener('keydown', function (e) {
+        if (!modal.classList.contains('open')) return;
+        if (e.key === 'Escape') {
+          if (modal.classList.contains('expanded')) toggleExpand();
+          else closeApplet();
+        }
+      });
 
       // ---- Navigation -----------------------------------------------------
       arrowNext.addEventListener("click", function () { pageFlip.flipNext(); });
       arrowPrev.addEventListener("click", function () { pageFlip.flipPrev(); });
       document.addEventListener("keydown", function (e) {
+        if (modal.classList.contains("open")) return; // modal handles its own keys
         if (!pageFlip) return;
         if (e.key === "ArrowLeft") pageFlip.flipPrev();
         else if (e.key === "ArrowRight") pageFlip.flipNext();

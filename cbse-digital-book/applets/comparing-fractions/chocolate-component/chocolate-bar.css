@@ -1,0 +1,308 @@
+/* Chocolate bar styles + animations */
+
+.chocolate-bar {
+  position: relative;
+  display: inline-block;
+  border-radius: 12px;
+  overflow: visible;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.55));
+  transition: width 1.2s ease-in-out, height 1.2s ease-in-out;
+  width: 300px;
+  height: 300px;
+}
+
+/* Piece slides across neighbour columns on symbol-compare slides */
+.chocolate-bar--segment-flight {
+  z-index: 56;
+}
+
+.chocolate-bar--small { width: 300px; height: 300px; }
+.chocolate-bar--large { width: 460px; height: 460px; }
+.chocolate-bar--normalized { width: 460px; height: 460px; }
+
+.chocolate-bar-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.chocolate-bar-outline {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.chocolate-bar--outline-pulse .chocolate-bar-outline {
+  opacity: 1;
+  animation: barOutlinePulse 1.4s ease-in-out infinite;
+  animation-delay: var(--outline-pulse-delay, 0s);
+}
+
+@keyframes barOutlinePulse {
+  0%, 100% {
+    stroke: rgba(255, 255, 255, 0.6);
+    stroke-width: 4;
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.5));
+  }
+  50% {
+    stroke: rgba(255, 220, 130, 1);
+    stroke-width: 7;
+    filter: drop-shadow(0 0 14px rgba(255, 220, 130, 0.95));
+  }
+}
+
+.chocolate-bar--selected {
+  animation: barSelectedGlow 1.4s ease-in-out infinite;
+}
+
+.chocolate-bar--resize-animate {
+  animation: chocolateResizeBox var(--resize-duration, 1.2s) ease-in-out forwards;
+}
+
+@keyframes chocolateResizeBox {
+  from {
+    width: var(--resize-from-size, 300px);
+    height: var(--resize-from-size, 300px);
+  }
+  to {
+    width: var(--resize-to-size, 300px);
+    height: var(--resize-to-size, 300px);
+  }
+}
+
+@keyframes barSelectedGlow {
+  0%, 100% { filter: drop-shadow(0 0 12px rgba(255, 159, 26, 0.6)) drop-shadow(0 8px 18px rgba(0, 0, 0, 0.55)); }
+  50%      { filter: drop-shadow(0 0 26px rgba(255, 159, 26, 0.95)) drop-shadow(0 8px 18px rgba(0, 0, 0, 0.55)); }
+}
+
+.chocolate-bar--faded { opacity: 0.72; }
+
+.bar-with-label:has(.chocolate-bar--dim-labels) .bar-labels-row,
+.bar-with-label:has(.chocolate-bar--dim-labels) .bar-fraction-area {
+  opacity: 0.45;
+  filter: saturate(0.45);
+}
+
+.chocolate-bar--teeter { animation: barTeeter 0.45s ease-in-out 0s 2; }
+
+@keyframes barTeeter {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-2deg); }
+  40% { transform: rotate(2deg); }
+  60% { transform: rotate(-1.5deg); }
+  80% { transform: rotate(1.5deg); }
+}
+
+.chocolate-bar--tappable { cursor: pointer; }
+
+/* Finger cue when the learner must tap a chocolate segment. */
+.chocolate-bar--tap-hint::after {
+  content: '';
+  position: absolute;
+  right: -28px;
+  bottom: -28px;
+  width: 74px;
+  height: 74px;
+  background-image: url('../assets/images/fingerTap.gif');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.8;
+  pointer-events: none;
+  z-index: 6;
+  animation: tapHintBob 1.2s ease-in-out infinite;
+}
+
+@keyframes tapHintBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* One-shot overlap animation for S15/S29: move, hold for comparison, then return. */
+.chocolate-bar--keyframe-slide {
+  transform-origin: var(--slide-origin, top left);
+  animation: chocolateBarSlideToTarget var(--slide-duration, 4.8s) ease-in-out both;
+}
+
+@keyframes chocolateBarSlideToTarget {
+  0%   { transform: translate(0px, 0px) scale(var(--slide-scale, 1)); }
+  30%  { transform: translate(var(--slide-dx, 0px), var(--slide-dy, 0px)) scale(var(--slide-scale, 1)); }
+  70%  { transform: translate(var(--slide-dx, 0px), var(--slide-dy, 0px)) scale(var(--slide-scale, 1)); }
+  100% { transform: translate(0px, 0px) scale(var(--slide-scale, 1)); }
+}
+
+/* Wrong guess on symbol compare screens: partly move toward overlap so halves don’t line up */
+.chocolate-bar--keyframe-slide-misalign {
+  transform-origin: var(--slide-origin, center center);
+  animation: chocolateBarSlideMisalign var(--slide-duration, 2.6s) ease-in-out both;
+}
+
+@keyframes chocolateBarSlideMisalign {
+  0%   { transform: translate(0px, 0px) scale(var(--slide-scale, 1)); }
+  35%  { transform: translate(calc(var(--slide-dx, 0px) * 0.36), calc(var(--slide-dy, 0px) * 0.36)) scale(var(--slide-scale, 1)); }
+  65%  { transform: translate(calc(var(--slide-dx, 0px) * 0.36), calc(var(--slide-dy, 0px) * 0.36)) scale(var(--slide-scale, 1)); }
+  100% { transform: translate(0px, 0px) scale(var(--slide-scale, 1)); }
+}
+
+/* Segment states */
+.chocolate-segment {
+  transition: opacity 0.3s ease, transform 0.2s ease;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+.chocolate-segment--tappable { cursor: pointer; }
+
+.chocolate-segment--dim { opacity: 0.35; }
+
+.chocolate-segment--pulse { animation: segmentPulse 1.4s ease-in-out infinite; }
+
+.chocolate-segment--pulse-one {
+  animation: segmentPulseStrong 1.2s ease-in-out infinite;
+  animation-delay: var(--pulse-segment-delay, 0s);
+}
+
+.chocolate-bar--stagger-pulse.chocolate-bar--outline-pulse .chocolate-bar-outline {
+  animation: barOutlinePulseStagger 2.8s ease-in-out infinite;
+  animation-delay: 0s;
+}
+
+.chocolate-bar--stagger-pulse .chocolate-segment--pulse-one {
+  animation: segmentPulseStagger 2.8s ease-in-out infinite;
+  animation-delay: 0s;
+}
+
+@keyframes barOutlinePulseStagger {
+  0%, 50%, 100% {
+    stroke: rgba(255, 255, 255, 0.6);
+    stroke-width: 4;
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.5));
+  }
+  25% {
+    stroke: rgba(255, 220, 130, 1);
+    stroke-width: 7;
+    filter: drop-shadow(0 0 14px rgba(255, 220, 130, 0.95));
+  }
+}
+
+@keyframes segmentPulseStagger {
+  0%, 50%, 100% {
+    filter: none;
+    transform: scale(1);
+  }
+  75% {
+    filter: drop-shadow(0 0 14px rgba(255, 220, 130, 0.95));
+    transform: scale(1.02);
+  }
+}
+
+.chocolate-segment-body {
+  transform-origin: top left;
+}
+
+.chocolate-segment-focus-outline {
+  stroke: #ffd35a;
+  stroke-width: 7px;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 12px rgba(255, 159, 26, 0.9));
+  pointer-events: none;
+  animation: segmentFocusOutlinePulse 1.2s ease-in-out infinite;
+}
+
+.chocolate-segment-body--slide {
+  animation: chocolateSegmentSlideToTarget var(--seg-slide-duration, 4.8s) ease-in-out both;
+}
+
+.chocolate-segment-body--slide-misalign {
+  animation: chocolateSegmentSlideMisalign var(--seg-slide-duration, 2.6s) ease-in-out both;
+}
+
+@keyframes chocolateSegmentSlideToTarget {
+  0%   { transform: translate(0px, 0px); filter: none; }
+  25%  { transform: translate(var(--seg-slide-dx, 0px), var(--seg-slide-dy, 0px)); filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
+  30%  { transform: translate(var(--seg-slide-dx, 0px), var(--seg-slide-dy, 0px)); filter: drop-shadow(0 0 6px rgba(255,255,255,1)) drop-shadow(0 0 12px rgba(255,230,80,0.9)); }
+  70%  { transform: translate(var(--seg-slide-dx, 0px), var(--seg-slide-dy, 0px)); filter: drop-shadow(0 0 6px rgba(255,255,255,1)) drop-shadow(0 0 12px rgba(255,230,80,0.9)); }
+  75%  { transform: translate(var(--seg-slide-dx, 0px), var(--seg-slide-dy, 0px)); filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
+  100% { transform: translate(0px, 0px); filter: none; }
+}
+
+@keyframes chocolateSegmentSlideMisalign {
+  0%   { transform: translate(0px, 0px); }
+  35%  { transform: translate(calc(var(--seg-slide-dx, 0px) * 0.36), calc(var(--seg-slide-dy, 0px) * 0.36)); }
+  65%  { transform: translate(calc(var(--seg-slide-dx, 0px) * 0.36), calc(var(--seg-slide-dy, 0px) * 0.36)); }
+  100% { transform: translate(0px, 0px); }
+}
+
+.chocolate-segment-label {
+  fill: #ffffff;
+  stroke: rgba(0, 0, 0, 0.7);
+  stroke-width: 2px;
+  paint-order: stroke fill;
+  font-family: Arial, sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  pointer-events: none;
+}
+
+@keyframes segmentPulse {
+  0%, 100% { filter: brightness(1); }
+  50%      { filter: brightness(1.25); }
+}
+
+@keyframes segmentPulseStrong {
+  0%, 100% { filter: brightness(1) drop-shadow(0 0 0 rgba(255, 255, 255, 0)); }
+  50%      { filter: brightness(1.35) drop-shadow(0 0 12px rgba(255, 220, 130, 0.95)); }
+}
+
+@keyframes segmentFocusOutlinePulse {
+  0%, 100% { stroke: #ffd35a; stroke-width: 7px; opacity: 0.9; }
+  50%      { stroke: #ffffff; stroke-width: 9px; opacity: 1; }
+}
+
+.chocolate-segment--shaded .chocolate-segment-shade {
+  animation: shadeShimmer 2.4s ease-in-out infinite;
+}
+
+@keyframes shadeShimmer {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 0.85; }
+}
+
+/* Container helpers used in app shell */
+.chocolate-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  position: relative;
+  width: 100%;
+}
+
+.bar-pair {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 36px;
+  position: relative;
+  width: 100%;
+}
+
+.bar-pair--horizontal {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 60px;
+  width: 100%;
+}
+
+.plain-symbol {
+  font-size: 96px;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
