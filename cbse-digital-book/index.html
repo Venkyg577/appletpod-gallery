@@ -31,7 +31,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        padding: 16px 80px;
+        padding: clamp(8px, 1.8vh, 16px) clamp(44px, 7vw, 80px);
       }
       #flipbook { transition: none; }
 
@@ -67,7 +67,7 @@
       }
       .index-page h2 {
         margin: 0 0 1%;
-        font-size: clamp(18px, 2.8vw, 32px);
+        font-size: 32px;
         font-weight: 700;
         color: #111;
         letter-spacing: 0.01em;
@@ -75,7 +75,7 @@
       .index-page h2 .chapter-subject { color: #6c2eb9; }
       .index-page .sub {
         margin: 0;
-        font-size: clamp(9px, 1.1vw, 12px);
+        font-size: 12px;
         color: #555;
         font-style: italic;
         line-height: 1.3;
@@ -108,14 +108,14 @@
       }
       .toc-pg {
         flex: 0 0 auto;
-        font-size: clamp(9px, 1.05vw, 12px);
+        font-size: 12px;
         color: #888;
         font-variant-numeric: tabular-nums;
         font-family: "Times New Roman", Times, serif;
         min-width: 2em;
       }
       .toc-topic {
-        font-size: clamp(12px, 1.55vw, 17px);
+        font-size: 17px;
         color: #111;
         line-height: 1.2;
         font-family: "Times New Roman", Times, serif;
@@ -130,7 +130,7 @@
         display: inline-flex;
         align-items: center;
         gap: 3px;
-        font-size: clamp(8px, 0.95vw, 11px);
+        font-size: 11px;
         font-weight: 700;
         font-family: "Segoe UI", system-ui, sans-serif;
         color: #1a1228;
@@ -148,7 +148,7 @@
         margin-top: 2%;
         padding-top: 2%;
         border-top: 1px solid #ddd;
-        font-size: clamp(8px, 0.9vw, 10px);
+        font-size: 10px;
         color: #999;
         text-align: center;
         font-style: italic;
@@ -159,8 +159,8 @@
       .hotspot {
         position: absolute;
         cursor: pointer;
-        border: 3px dashed rgba(255, 179, 0, 0.7);
-        border-radius: 10px;
+        border: clamp(1.5px, 0.32vw, 3px) dashed rgba(255, 179, 0, 0.7);
+        border-radius: clamp(5px, 1vw, 10px);
         background: rgba(124, 77, 255, 0);
         transition: background 0.25s ease, box-shadow 0.25s ease;
         z-index: 5;
@@ -175,14 +175,14 @@
         content: var(--label, "▶ Open Applet");
         position: absolute;
         right: -6px;
-        bottom: -34px;
+        bottom: calc(-1 * clamp(22px, 4vh, 34px));
         background: var(--accent-2);
         color: #2b2330;
-        font-size: 12px;
+        font-size: clamp(7px, 1.35vh, 12px);
         font-weight: 700;
         line-height: 1;
-        padding: 6px 10px;
-        border-radius: 6px;
+        padding: clamp(4px, 0.8vh, 6px) clamp(6px, 1.3vw, 10px);
+        border-radius: clamp(4px, 0.8vw, 6px);
         white-space: nowrap;
         opacity: 0;
         transform: translateY(-4px);
@@ -450,9 +450,72 @@
       }
       #modal-fullscreen:hover { background: rgba(124,77,255,0.95); transform: scale(1.1); }
 
+      #rotate-notice {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        padding: 28px;
+        background: #1c1524;
+        color: #fff;
+        text-align: center;
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      }
+      .rotate-card {
+        max-width: 360px;
+      }
+      .rotate-icon {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 16px;
+        border: 3px solid #ffb300;
+        border-radius: 14px;
+        transform: rotate(90deg);
+      }
+      .rotate-title {
+        margin: 0 0 8px;
+        font-size: 24px;
+        font-weight: 800;
+      }
+      .rotate-copy {
+        margin: 0;
+        font-size: 15px;
+        line-height: 1.45;
+        color: #e6ddf3;
+      }
+
+      @media (hover: none) {
+        .hotspot::after {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      @media (max-height: 520px) {
+        .arrow {
+          width: 44px;
+          height: 44px;
+          font-size: 24px;
+        }
+      }
+
+      @media (orientation: portrait) and (max-width: 900px) {
+        #rotate-notice { display: flex; }
+      }
+
     </style>
   </head>
   <body>
+    <div id="rotate-notice" role="status" aria-live="polite">
+      <div class="rotate-card">
+        <div class="rotate-icon" aria-hidden="true"></div>
+        <p class="rotate-title">Rotate to landscape</p>
+        <p class="rotate-copy">This book and its applets are designed to run in landscape mode.</p>
+      </div>
+    </div>
+
     <button class="arrow" id="arrowPrev" aria-label="Previous page">‹</button>
     <button class="arrow" id="arrowNext" aria-label="Next page">›</button>
 
@@ -523,24 +586,37 @@
 
       function pad(n) { return n < 10 ? "0" + n : "" + n; }
 
-      // ---- Page topics (all 15 PDF pages) ------------------------------------
+      function pageToSpreadIndex(pg) {
+        if (pg <= 1) return 0;
+        return pg % 2 === 0 ? pg : pg - 1;
+      }
+
+      function visiblePagesForIndex(idx) {
+        var spreadStart = idx <= 1 ? 0 : (idx % 2 === 0 ? idx : idx - 1);
+        if (spreadStart <= 0) return [1];
+        var pages = [Math.min(spreadStart, TOTAL_PAGES)];
+        if (spreadStart + 1 <= TOTAL_PAGES) pages.push(spreadStart + 1);
+        return pages;
+      }
+
+      // ---- Page topics (all 15 rendered PDF pages) ---------------------------
       // appletId: links this page entry to an applet (optional)
       var PAGE_TOPICS = [
-        { pg: 1,  topic: "What is a Fraction?",                    appletId: "applet1" },
-        { pg: 2,  topic: "Equivalent Fractions",                   appletId: "applet2" },
-        { pg: 3,  topic: "Fractions on the Number Line" },
-        { pg: 4,  topic: "Comparing Fractions" },
-        { pg: 5,  topic: "Adding Fractions – Same Denominator" },
-        { pg: 6,  topic: "Adding Fractions – Different Denominators" },
-        { pg: 7,  topic: "Subtracting Fractions – Same Denominator" },
-        { pg: 8,  topic: "Subtracting Fractions – Different Denominators" },
-        { pg: 9,  topic: "Mixed Numbers & Improper Fractions" },
-        { pg: 10, topic: "Multiplying a Fraction by a Whole" },
-        { pg: 11, topic: "Fractions of a Collection" },
-        { pg: 12, topic: "Word Problems – Part I" },
-        { pg: 13, topic: "Word Problems – Part II" },
-        { pg: 14, topic: "Let Us Do – Exercises" },
-        { pg: 15, topic: "Review & Summary" },
+        { pg: 1,  topic: "Fractions · Comparing Different-Sized Wholes", appletId: "applet1" },
+        { pg: 2,  topic: "Equivalent Fractions",                         appletId: "applet2" },
+        { pg: 3,  topic: "Equivalent Fractions · Let Us Do" },
+        { pg: 4,  topic: "Making Equivalent Fractions" },
+        { pg: 5,  topic: "Making Equivalent Fractions · Practice" },
+        { pg: 6,  topic: "Equivalent Fractions · Let Us Do" },
+        { pg: 7,  topic: "Comparing Fractions · Same Denominator" },
+        { pg: 8,  topic: "Comparing Fractions · Same Numerator" },
+        { pg: 9,  topic: "Fractions Greater Than 1" },
+        { pg: 10, topic: "Fractions Greater Than 1 · Number Line" },
+        { pg: 11, topic: "Fractions Greater Than 1 · Thirds" },
+        { pg: 12, topic: "Fractions Greater Than 1 · Let Us Do" },
+        { pg: 13, topic: "Comparing Fractions with Reference to 1" },
+        { pg: 14, topic: "Comparing Fractions with Reference to 1/2" },
+        { pg: 15, topic: "Try This · Fun with Relations" },
       ];
 
       // ---- Leaf builders --------------------------------------------------
@@ -589,7 +665,7 @@
           row.addEventListener("click", function (e) {
             if (e.target.closest('.toc-applet-btn')) return;
             var pg = parseInt(row.getAttribute('data-pg'), 10);
-            if (pageFlip) pageFlip.flip(pg);
+            if (pageFlip) pageFlip.flip(pageToSpreadIndex(pg));
           });
         });
 
@@ -660,7 +736,7 @@
           b.addEventListener("click", function(e) {
             e.stopPropagation();
             closePicker();
-            if (pageFlip) pageFlip.flip(n);
+            if (pageFlip) pageFlip.flip(pageToSpreadIndex(n));
           });
           pagePickerInner.appendChild(b);
         })(_p);
@@ -669,14 +745,16 @@
       function openPicker(currentIdx) {
         pickerOpen = true;
         pagePicker.hidden = false;
-        // Mark active button
-        var btns = pagePickerInner.querySelectorAll('.pg-btn');
-        btns.forEach(function(b, i) {
-          b.classList.toggle('active', i + 1 === currentIdx);
-        });
-        // Scroll active button into view
+        syncPickerActive(currentIdx);
         var active = pagePickerInner.querySelector('.pg-btn.active');
         if (active) active.scrollIntoView({ block: 'nearest', inline: 'center' });
+      }
+
+      function syncPickerActive(idx) {
+        var visiblePages = visiblePagesForIndex(idx);
+        pagePickerInner.querySelectorAll('.pg-btn').forEach(function(b, i) {
+          b.classList.toggle('active', visiblePages.indexOf(i + 1) !== -1);
+        });
       }
 
       function closePicker() {
@@ -712,7 +790,7 @@
           startZIndex: 0,
           autoSize: false,
           maxShadowOpacity: 0.5,
-          // No cover: the opening spread is [ index | page 1 ].
+          // Opening spread stays [index | page 1].
           showCover: false,
           mobileScrollSupport: false,
         });
@@ -733,14 +811,17 @@
       }
 
       function updateChrome(idx) {
-        // idx 0 = index leaf; idx N (>=1) shows PDF page N as the left page.
+        var visiblePages = visiblePagesForIndex(idx);
         if (idx <= 0) {
-          indicator.textContent = "Index · Applets";
-          hintEl.style.display = "none";
+          indicator.textContent = "Index · Page 1";
+          hintEl.textContent =
+            '💡 Click the chocolate bars to open the "Comparing Fractions" applet.';
+          hintEl.style.display = "block";
         } else {
-          var pageNo = Math.min(idx, TOTAL_PAGES);
-          indicator.textContent = "Page " + pageNo + " / " + TOTAL_PAGES;
-          if (idx === 1) {
+          indicator.textContent = visiblePages.length === 1
+            ? "Page " + visiblePages[0] + " / " + TOTAL_PAGES
+            : "Pages " + visiblePages[0] + "-" + visiblePages[1] + " / " + TOTAL_PAGES;
+          if (visiblePages.indexOf(1) !== -1) {
             hintEl.textContent =
               '💡 Click the chocolate bars to open the "Comparing Fractions" applet.';
             hintEl.style.display = "block";
@@ -750,10 +831,7 @@
         }
         arrowPrev.disabled = idx <= 0;
         arrowNext.disabled = idx >= LAST_INDEX;
-        // Keep picker active state in sync
-        pagePickerInner.querySelectorAll('.pg-btn').forEach(function(b, i) {
-          b.classList.toggle('active', i + 1 === idx);
-        });
+        syncPickerActive(idx);
       }
 
       function rebuild() {
