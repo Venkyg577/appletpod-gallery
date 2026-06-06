@@ -150,12 +150,14 @@ function buildPageLeaf(n, pageH) {
   img.alt = "Page " + n;
   div.appendChild(img);
 
+  var pageScale = pageH ? pageH / PAGE_DECOR_BASE_H : 1;
   (APPLETS_BY_PAGE[n] || []).forEach(function (ap) {
     var a = document.createElement("a");
     a.className = "hotspot";
     a.href = ap.src;
     a.title = ap.title;
     a.style.setProperty("--label", '"' + ap.label + '"');
+    a.style.setProperty("--page-scale", String(pageScale));
     a.style.top = ap.hotspot.top + "%";
     a.style.left = ap.hotspot.left + "%";
     a.style.width = ap.hotspot.width + "%";
@@ -323,11 +325,16 @@ var modalFsBtn   = document.getElementById("modal-fullscreen");
 var modalWrap    = document.getElementById("modal-frame-wrap");
 var fittedRect   = null;
 
+// Base modal height at which chrome dot sizes (14px, 10px gap etc.) are authored.
+var MODAL_CHROME_BASE_H = 600;
+
 function setWrapRect(r) {
   modalWrap.style.top    = r.top    + 'px';
   modalWrap.style.left   = r.left   + 'px';
   modalWrap.style.width  = r.width  + 'px';
   modalWrap.style.height = r.height + 'px';
+  // Scale traffic-light dots to modal size.
+  modalWrap.style.setProperty('--modal-scale', String(r.height / MODAL_CHROME_BASE_H));
 }
 
 function expandedRect() {

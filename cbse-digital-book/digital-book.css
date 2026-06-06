@@ -398,22 +398,23 @@ html, body {
   display: block;
 }
 
-/* macOS-style traffic-light chrome — top-left corner */
+/* macOS-style traffic-light chrome — top-left corner.
+   --modal-scale is set on #modal-frame-wrap by JS (modal height / 600px base). */
 #modal-chrome {
   position: absolute;
-  top: 10px;
-  left: 12px;
+  top: calc(10px * var(--modal-scale, 1));
+  left: calc(12px * var(--modal-scale, 1));
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: calc(8px * var(--modal-scale, 1));
   z-index: 10;
 }
 
 /* Both buttons share the traffic-light dot shape */
 #modal-close,
 #modal-fullscreen {
-  width: 14px;
-  height: 14px;
+  width: calc(14px * var(--modal-scale, 1));
+  height: calc(14px * var(--modal-scale, 1));
   border-radius: 50%;
   border: none;
   cursor: pointer;
@@ -438,7 +439,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 8px;
+  font-size: calc(8px * var(--modal-scale, 1));
   color: rgba(80,10,10,0.85);
   opacity: 0;
   transition: opacity 0.12s ease;
@@ -460,7 +461,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 9px;
+  font-size: calc(9px * var(--modal-scale, 1));
   color: rgba(0,60,10,0.85);
   opacity: 0;
   transition: opacity 0.12s ease;
