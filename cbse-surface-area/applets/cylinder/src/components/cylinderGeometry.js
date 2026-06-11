@@ -1,0 +1,34 @@
+const RADIUS = 95;
+const TOP_Y = 60;
+const BOT_Y = 265;
+const HEIGHT = BOT_Y - TOP_Y;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+const NET_RECT_X = 200;
+const NET_RECT_Y = 190;
+const NET_RECT_W = Math.round(CIRCUMFERENCE);
+
+export const CYLINDER = {
+  CX: 155,
+  RADIUS,
+  TOP_Y,
+  BOT_Y,
+  HEIGHT,
+  FLAT_S: 0.27,
+  LIFT_T: -94,
+  LIFT_B: 94,
+};
+
+export const CYLINDER_NET = {
+  VIEW_W: 1040,
+  VIEW_H: 610,
+  RADIUS,
+  RECT_X: NET_RECT_X,
+  RECT_Y: NET_RECT_Y,
+  RECT_W: NET_RECT_W,
+  RECT_H: HEIGHT,
+  CX: NET_RECT_X + RADIUS,
+  LEFT_CX: NET_RECT_X + RADIUS,
+  RIGHT_CX: NET_RECT_X + RADIUS + NET_RECT_W,
+  TOP_CY: NET_RECT_Y - RADIUS,
+  BOT_CY: NET_RECT_Y + HEIGHT + RADIUS,
+};

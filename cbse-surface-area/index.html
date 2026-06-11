@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Surface Areas of Cylinders — Interactive Digital Book</title>
+    <link rel="stylesheet" href="digital-book.css" />
+  </head>
+  <body>
+    <div id="rotate-notice" role="status" aria-live="polite">
+      <div class="rotate-card">
+        <div class="rotate-icon" aria-hidden="true"></div>
+        <p class="rotate-title">Rotate to landscape</p>
+        <p class="rotate-copy">This book and its applets are designed to run in landscape mode.</p>
+      </div>
+    </div>
+
+    <button class="arrow" id="arrowPrev" aria-label="Previous page">‹</button>
+    <button class="arrow" id="arrowNext" aria-label="Next page">›</button>
+
+    <div class="stage" id="stage"></div>
+
+    <div class="pill" id="hint"></div>
+    <div id="indicator-wrap">
+      <div class="pill" id="indicator">Page 1 / 15</div>
+      <div id="page-picker" hidden>
+        <div id="page-picker-inner"></div>
+      </div>
+    </div>
+
+    <!-- Applet modal -->
+    <div id="applet-modal" role="dialog" aria-modal="true" aria-label="Interactive Applet">
+      <div id="modal-frame-wrap">
+        <div id="modal-chrome">
+          <button id="modal-close" aria-label="Close applet"></button>
+          <button id="modal-fullscreen" aria-label="Toggle full screen"></button>
+        </div>
+        <iframe id="modal-iframe" title="Applet" allowfullscreen></iframe>
+      </div>
+    </div>
+
+    <!-- Local copy of StPageFlip so it works fully offline -->
+    <script src="lib/page-flip.browser.js"></script>
+    <script src="digital-book.js"></script>
+  </body>
+</html>

@@ -66,6 +66,17 @@
     "thumbnail": null
   },
   {
+    "slug": "cbse-surface-area",
+    "title": "Surface Area of a Cylinder – Interactive Digital Book",
+    "description": "A page-flip digital book covering CBSE Class 8 surface area of cylinders, with an embedded interactive applet that lets students explore the net of a cylinder and derive the formula step by step.",
+    "category": "Mathematics",
+    "grade": "Class 8",
+    "tags": ["surface-area", "cylinder", "digital-book", "cbse", "interactive", "page-flip"],
+    "status": "unlisted",
+    "demoUrl": "/cbse-surface-area/",
+    "thumbnail": null
+  },
+  {
     "slug": "chocolate-fractions",
     "title": "Boojho's Chocolate Sharing – Equivalent Fractions",
     "description": "Step-by-step visual exploration where students shade and split chocolate-bar wholes to discover that 1/2 = 2/4 and 1/3 = 2/6 — building a concrete understanding of equivalent fractions through guided interaction.",
