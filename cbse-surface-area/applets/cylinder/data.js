@@ -12,7 +12,7 @@ const en = {
     labels: {
       locale: "Language",
       to_explore_cylinder: "To explore the cylinder",
-      to_understand_surface_area: "To understand surface area",
+      to_understand_surface_area: "Surface area →",
       to_continue: "To continue",
       to_explore_cone: "To explore cone",
       to_understand_next_solid: "To understand next solid",
@@ -57,7 +57,7 @@ const en = {
       },
       cyl_combo: {
         title:
-          "A cylinder has two circular bases of radius 'r' and its curved surface, when unfolded, forms a rectangle whose length is 2πr.",
+          "2 circular bases + a curved surface that unfolds into a rectangle of length 2πr.",
       },
       cyl_formula_opening: {
         title:

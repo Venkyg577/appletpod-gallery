@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "build": "../node_modules/.bin/esbuild src/main.jsx --bundle --outfile=assets/js/bundle.js --format=iife --loader:.jsx=jsx --jsx=automatic --define:process.env.NODE_ENV=\\\"production\\\" --minify"
+    "build": "./node_modules/.bin/esbuild src/main.jsx --bundle --outfile=assets/js/bundle.js --format=iife --loader:.jsx=jsx --jsx=automatic --define:process.env.NODE_ENV=\\\"production\\\" --minify"
   },
   "dependencies": {
     "react": "^18.3.1",

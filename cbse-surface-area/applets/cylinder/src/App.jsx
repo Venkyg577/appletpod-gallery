@@ -37,6 +37,7 @@ export default function App() {
   const [bottomRollProgress, setBottomRollProgress] = useState(0);
   const [activeRollTarget, setActiveRollTarget] = useState(null);
   const [cylFormulaStep, setCylFormulaStep] = useState(0);
+  const [autoPlaying, setAutoPlaying] = useState(false);
 
   const su = useMemo(() => appData[locale]["standard-ui"], [locale]);
   const screens = useMemo(() => appData[locale]["content-ui"].screens, [locale]);
@@ -76,7 +77,11 @@ export default function App() {
 
   const onSelectCylinder = () => {
     bumpTap();
+    setAutoPlaying(true);
     setScreen(SCREENS.CYL_INTRO);
+    // From here each diagram auto-runs its own animation and advances via its
+    // callback; the effect below paces the non-animated screens (INTRO, 2PI).
+    // Sequence ends on CYL_COMBO, then Next enables.
   };
 
   const railNext = () => {
@@ -95,6 +100,7 @@ export default function App() {
   };
 
   const railDisabled = () => {
+    if (autoPlaying) return true;
     if (screen === SCREENS.CYL_ROLL && (topRollProgress < 1 || bottomRollProgress < 1)) return true;
     if (screen === SCREENS.CYL_FORMULA && cylFormulaStep < 6) return true;
     if (screen === SCREENS.SELECT) return true;
@@ -153,6 +159,7 @@ export default function App() {
         <CylinderStyledDiagram
           step={step}
           pulseTarget={pulse}
+          autoPlay={autoPlaying}
           onTopTap={screen === SCREENS.CYL_TOP ? () => { bumpTap(); setScreen(SCREENS.CYL_BOTTOM); } : undefined}
           onBottomTap={screen === SCREENS.CYL_BOTTOM ? () => { bumpTap(); setScreen(SCREENS.CYL_CURVED); } : undefined}
           onCurvedTap={screen === SCREENS.CYL_CURVED ? () => { bumpTap(); setScreen(SCREENS.CYL_RECT); } : undefined}
@@ -160,7 +167,12 @@ export default function App() {
       );
     }
     if (screen === SCREENS.CYL_RECT) {
-      return <CylinderRectStep key="cyl-rect" />;
+      return (
+        <CylinderRectStep
+          key="cyl-rect"
+          onAutoDone={autoPlaying ? () => setScreen(SCREENS.CYL_ROLL) : undefined}
+        />
+      );
     }
     if (screen === SCREENS.CYL_ROLL) {
       const rollTarget = topRollProgress < 1 ? "top" : bottomRollProgress < 1 ? "bottom" : null;
@@ -187,6 +199,15 @@ export default function App() {
         requestAnimationFrame(tick);
       };
 
+      if (autoPlaying) {
+        return (
+          <CylinderNetStep
+            key="cyl-roll-auto"
+            autoPlay
+            onAutoDone={() => setScreen(SCREENS.CYL_2PI)}
+          />
+        );
+      }
       return (
         <CylinderNetStep
           topRollProgress={topRollProgress}
@@ -242,12 +263,29 @@ export default function App() {
   }, [screen]);
 
   useEffect(() => {
-    if (screen === SCREENS.CYL_ROLL) {
+    if (screen === SCREENS.CYL_ROLL && !autoPlaying) {
       setTopRollProgress(0);
       setBottomRollProgress(0);
       setActiveRollTarget(null);
     }
-  }, [screen]);
+  }, [screen, autoPlaying]);
+
+  // Auto-play pacing for screens that have no internal animation to self-advance.
+  useEffect(() => {
+    if (!autoPlaying) return undefined;
+    if (screen === SCREENS.CYL_INTRO) {
+      const t = setTimeout(() => setScreen(SCREENS.CYL_TOP), 450);
+      return () => clearTimeout(t);
+    }
+    if (screen === SCREENS.CYL_2PI) {
+      const t = setTimeout(() => setScreen(SCREENS.CYL_COMBO), 500);
+      return () => clearTimeout(t);
+    }
+    if (screen === SCREENS.CYL_COMBO) {
+      setAutoPlaying(false);
+    }
+    return undefined;
+  }, [screen, autoPlaying]);
 
   const footerHint = () => {
     if (hint()) return hint();

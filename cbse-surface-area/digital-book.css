@@ -177,7 +177,7 @@ html, body {
 .hotspot {
   position: absolute;
   cursor: pointer;
-  border: calc(2px * var(--page-scale, 1)) dashed rgba(255, 179, 0, 0.7);
+  border: calc(2px * var(--page-scale, 1)) dashed rgba(124, 77, 255, 0.85);
   border-radius: calc(8px * var(--page-scale, 1));
   background: rgba(124, 77, 255, 0);
   transition: background 0.25s ease, box-shadow 0.25s ease;
@@ -185,17 +185,17 @@ html, body {
   animation: ring 1.8s ease-out infinite;
 }
 .hotspot:hover {
-  background: rgba(124, 77, 255, 0.18);
-  border-color: var(--accent-2);
-  box-shadow: 0 0 0 calc(4px * var(--page-scale, 1)) rgba(255, 179, 0, 0.25);
+  background: rgba(124, 77, 255, 0.22);
+  border-color: rgba(124, 77, 255, 1);
+  box-shadow: 0 0 0 calc(4px * var(--page-scale, 1)) rgba(124, 77, 255, 0.3);
 }
 .hotspot::after {
   content: var(--label, "▶ Open Applet");
   position: absolute;
   right: calc(-4px * var(--page-scale, 1));
   bottom: calc(-28px * var(--page-scale, 1));
-  background: var(--accent-2);
-  color: #2b2330;
+  background: rgba(124, 77, 255, 1);
+  color: #fff;
   font-size: calc(11px * var(--page-scale, 1));
   font-weight: 700;
   line-height: 1;
@@ -209,8 +209,8 @@ html, body {
 }
 .hotspot:hover::after { opacity: 1; transform: translateY(0); }
 @keyframes ring {
-  0% { box-shadow: 0 0 0 0 rgba(255, 179, 0, 0.55); }
-  100% { box-shadow: 0 0 0 calc(14px * var(--page-scale, 1)) rgba(255, 179, 0, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(124, 77, 255, 0.6); }
+  100% { box-shadow: 0 0 0 calc(14px * var(--page-scale, 1)) rgba(124, 77, 255, 0); }
 }
 
 /* ===== Side navigation arrows (left / right edges) ===== */

@@ -1,7 +1,11 @@
-import React, { useId } from "react";
+import React, { useId, useState, useEffect, useRef } from "react";
 import { CYLINDER, CYLINDER_NET as NET } from "./cylinderGeometry.js";
 
 const DIAGRAM_X = NET.CX - CYLINDER.CX;
+
+function easeInOut(t) {
+  return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+}
 
 /**
  * Static net view — circles roll one at a time across one circumference length.
@@ -17,6 +21,9 @@ export function CylinderNetStep({
   activeTarget = "top",
   showLabel = false,
   onRollTap,
+  autoPlay = false,
+  autoShowLabel = false,
+  onAutoDone,
 }) {
   const uid = useId().replace(/:/g, "");
   const { VIEW_W, VIEW_H, RECT_X, RECT_Y, RECT_W, RECT_H, RADIUS, TOP_CY, BOT_CY } = NET;
@@ -26,9 +33,47 @@ export function CylinderNetStep({
   const gBot  = `${uid}-B`;
   const gSpec = `${uid}-P`;
 
+  // Auto-play: roll top circle, then bottom, then reveal 2πr label + finish.
+  const [autoTop, setAutoTop] = useState(0);
+  const [autoBot, setAutoBot] = useState(0);
+  const [autoLabel, setAutoLabel] = useState(false);
+  const rafRef = useRef(null);
+  useEffect(() => {
+    if (!autoPlay) return undefined;
+    const ROLL = 650;
+    const runRoll = (setter, done) => {
+      const start = Date.now();
+      const tick = () => {
+        const raw = Math.min((Date.now() - start) / ROLL, 1);
+        setter(easeInOut(raw));
+        if (raw < 1) rafRef.current = requestAnimationFrame(tick);
+        else done();
+      };
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    const t = setTimeout(() => {
+      runRoll(setAutoTop, () => {
+        runRoll(setAutoBot, () => {
+          setAutoLabel(true);
+          if (onAutoDone) setTimeout(onAutoDone, 400);
+        });
+      });
+    }, 250);
+    return () => {
+      clearTimeout(t);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoPlay]);
+
   const fallbackProgress = rollProgress ?? 0;
-  const topP = Math.max(0, Math.min(1, topRollProgress ?? fallbackProgress));
-  const botP = Math.max(0, Math.min(1, bottomRollProgress ?? fallbackProgress));
+  const topP = autoPlay
+    ? autoTop
+    : Math.max(0, Math.min(1, topRollProgress ?? fallbackProgress));
+  const botP = autoPlay
+    ? autoBot
+    : Math.max(0, Math.min(1, bottomRollProgress ?? fallbackProgress));
+  const labelOn = autoPlay ? autoLabel : showLabel || autoShowLabel;
 
   // Both circles start with their centres ON the LEFT corner of the rectangle
   // and roll RIGHTWARD, ending with their centres ON the RIGHT corner.
@@ -90,7 +135,7 @@ export function CylinderNetStep({
           </>
         )}
 
-        {showLabel && (
+        {labelOn && (
           <>
             <text x={RECT_X + RECT_W / 2} y={RECT_Y - 18}
               textAnchor="middle" fontFamily="Arial" fontSize="26" fontWeight="bold" fill="#ffe066">2πr</text>

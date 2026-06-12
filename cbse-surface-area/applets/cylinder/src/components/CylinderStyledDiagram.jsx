@@ -1,4 +1,4 @@
-import React, { useId, useState, useRef } from "react";
+import React, { useId, useState, useRef, useEffect } from "react";
 import { CYLINDER, CYLINDER_NET } from "./cylinderGeometry.js";
 
 /**
@@ -24,7 +24,7 @@ function easeInOut(t) {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 }
 
-export function CylinderStyledDiagram({ step, pulseTarget, onTopTap, onBottomTap, onCurvedTap, compact = true }) {
+export function CylinderStyledDiagram({ step, pulseTarget, onTopTap, onBottomTap, onCurvedTap, compact = true, autoPlay = false, autoPlayDelay = 350 }) {
   const uid = useId().replace(/:/g, "");
   const [animTop,    setAnimTop]    = useState(false);
   const [animBottom, setAnimBottom] = useState(false);
@@ -48,20 +48,21 @@ export function CylinderStyledDiagram({ step, pulseTarget, onTopTap, onBottomTap
   const botPulse  = !animBottom && pulseTarget === "bottom" ? " pulse-shape" : "";
   const sidePulse = pulseTarget === "curved" ? " pulse-shape" : "";
 
+  const liftMs = autoPlay ? 460 : 720;
   const handleTopClick = () => {
     if (pulseTarget !== "top" || !onTopTap || animTop) return;
     setAnimTop(true);
-    setTimeout(onTopTap, 720);
+    setTimeout(onTopTap, liftMs);
   };
   const handleBottomClick = () => {
     if (pulseTarget !== "bottom" || !onBottomTap || animBottom) return;
     setAnimBottom(true);
-    setTimeout(onBottomTap, 720);
+    setTimeout(onBottomTap, liftMs);
   };
   const handleCurvedClick = () => {
     if (pulseTarget !== "curved" || !onCurvedTap || cutting) return;
     setCutting(true);
-    const CUT_DUR = 600;
+    const CUT_DUR = autoPlay ? 420 : 600;
     const start = Date.now();
     const tick = () => {
       const raw = Math.min((Date.now() - start) / CUT_DUR, 1);
@@ -74,6 +75,19 @@ export function CylinderStyledDiagram({ step, pulseTarget, onTopTap, onBottomTap
     };
     cutRafRef.current = requestAnimationFrame(tick);
   };
+
+  // Auto-play: fire this screen's tap animation on mount, then the onTap
+  // callback advances to the next screen once the animation completes.
+  useEffect(() => {
+    if (!autoPlay) return undefined;
+    const t = setTimeout(() => {
+      if (pulseTarget === "top") handleTopClick();
+      else if (pulseTarget === "bottom") handleBottomClick();
+      else if (pulseTarget === "curved") handleCurvedClick();
+    }, autoPlayDelay);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoPlay, pulseTarget]);
 
   const topLifted = step >= 1 || animTop;
   const botLifted = step >= 2 || animBottom;

@@ -22,7 +22,7 @@ function easeInOut(t) {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 }
 
-export function CylinderRectStep() {
+export function CylinderRectStep({ onAutoDone }) {
   const uid = useId().replace(/:/g, "");
   const [cutProgress, setCutProgress] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -39,12 +39,17 @@ export function CylinderRectStep() {
   const gBot  = `${uid}-B`;
   const gSpec = `${uid}-P`;
 
-  // Phase 1: cut line
+  // Phase 1: cut line. Faster cadence when auto-playing.
+  const auto = !!onAutoDone;
+  const cutDelay = auto ? 200 : CUT_DELAY;
+  const cutDur   = auto ? 420 : CUT_DUR;
+  const unfDelay = auto ? 150 : DELAY;
+  const unfDur   = auto ? 700 : DURATION;
   useEffect(() => {
     const t = setTimeout(() => {
       const start = Date.now();
       const tick = () => {
-        const raw = Math.min((Date.now() - start) / CUT_DUR, 1);
+        const raw = Math.min((Date.now() - start) / cutDur, 1);
         setCutProgress(easeInOut(raw));
         if (raw < 1) {
           cutRafRef.current = requestAnimationFrame(tick);
@@ -53,16 +58,17 @@ export function CylinderRectStep() {
           setTimeout(() => {
             const start2 = Date.now();
             const tick2 = () => {
-              const raw2 = Math.min((Date.now() - start2) / DURATION, 1);
+              const raw2 = Math.min((Date.now() - start2) / unfDur, 1);
               setProgress(easeInOut(raw2));
               if (raw2 < 1) rafRef.current = requestAnimationFrame(tick2);
+              else if (onAutoDone) setTimeout(onAutoDone, 200);
             };
             rafRef.current = requestAnimationFrame(tick2);
-          }, DELAY);
+          }, unfDelay);
         }
       };
       cutRafRef.current = requestAnimationFrame(tick);
-    }, CUT_DELAY);
+    }, cutDelay);
     return () => {
       clearTimeout(t);
       if (cutRafRef.current) cancelAnimationFrame(cutRafRef.current);

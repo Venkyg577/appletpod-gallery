@@ -17,10 +17,10 @@ var APPLETS = [
     title: "Surface Area of a Cylinder",
     topic: "Curved surface · bases · S = 2πr(r + h)",
     page: 3,
-    src: "applets/cylinder/index.html",
+    src: "applets/cylinder/index.html?v=3",
     label: "▶ Open: Surface Area of a Cylinder",
     // % of page box — provisional, over the Key Idea cylinder diagram (top-right).
-    hotspot: { top: 30, left: 60, width: 34, height: 22 },
+    hotspot: { top: 27.5, left: 26, width: 70, height: 27 },
   },
 ];
 
