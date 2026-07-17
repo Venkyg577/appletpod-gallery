@@ -1,5 +1,16 @@
 [
   {
+    "slug": "light-grade5",
+    "title": "Light and Its Properties",
+    "description": "Explore how light helps us see, identify luminous and non-luminous objects, and investigate how light travels, passes through materials, and forms shadows.",
+    "category": "Science",
+    "grade": "Class 5",
+    "tags": ["light", "science", "luminous-objects", "shadows", "cbse"],
+    "status": "published",
+    "demoUrl": "/light-grade5/",
+    "thumbnail": null
+  },
+  {
     "slug": "comparing-decimals",
     "title": "Comparing Decimal Numbers",
     "description": "Drag and drop to compare decimals using place value — students build intuition for number magnitude through hands-on manipulation.",
