@@ -5,106 +5,158 @@
     "description": "Explore how light helps us see, identify luminous and non-luminous objects, and investigate how light travels, passes through materials, and forms shadows.",
     "category": "Science",
     "grade": "Class 5",
-    "tags": ["light", "science", "luminous-objects", "shadows", "cbse"],
+    "tags": [
+      "light",
+      "science",
+      "luminous-objects",
+      "shadows",
+      "cbse"
+    ],
     "status": "published",
     "demoUrl": "/light-grade5/",
-    "thumbnail": null
+    "thumbnail": "/thumbs/light-grade5.png"
   },
   {
     "slug": "comparing-decimals",
     "title": "Comparing Decimal Numbers",
-    "description": "Drag and drop to compare decimals using place value — students build intuition for number magnitude through hands-on manipulation.",
+    "description": "Drag and drop to compare decimals using place value \u2014 students build intuition for number magnitude through hands-on manipulation.",
     "category": "Mathematics",
     "grade": "G4-G5",
-    "tags": ["decimals", "place-value", "drag-and-drop"],
+    "tags": [
+      "decimals",
+      "place-value",
+      "drag-and-drop"
+    ],
     "status": "published",
     "demoUrl": "/comparing-decimals/",
-    "thumbnail": null
+    "thumbnail": "/thumbs/comparing-decimals.png"
   },
   {
     "slug": "parallel-series-circuits",
     "title": "Parallel & Series Circuits",
-    "description": "Add and remove bulbs to explore how brightness changes in parallel vs series circuits — misconception-busting physics made tangible.",
+    "description": "Add and remove bulbs to explore how brightness changes in parallel vs series circuits \u2014 misconception-busting physics made tangible.",
     "category": "Physics",
     "grade": "G6-G8",
-    "tags": ["circuits", "physics", "simulation"],
+    "tags": [
+      "circuits",
+      "physics",
+      "simulation"
+    ],
     "status": "published",
     "demoUrl": "/parallel-series-circuits/",
-    "thumbnail": null
+    "thumbnail": "/thumbs/parallel-series-circuits.png"
   },
   {
     "slug": "biology-lab",
     "title": "Biology Lab Safety: Spot the Contamination Risks",
-    "description": "Identify three contamination risks in a lab setup to prevent sample integrity issues — interactive risk assessment through visual inspection and feedback.",
+    "description": "Identify three contamination risks in a lab setup to prevent sample integrity issues \u2014 interactive risk assessment through visual inspection and feedback.",
     "category": "Biology",
     "grade": "G9-G12",
-    "tags": ["biology", "lab-safety", "risk-assessment", "interactive"],
+    "tags": [
+      "biology",
+      "lab-safety",
+      "risk-assessment",
+      "interactive"
+    ],
     "status": "published",
     "demoUrl": "/biology-lab/",
-    "thumbnail": null
+    "thumbnail": "/thumbs/biology-lab.png"
   },
   {
     "slug": "equivalent-fractions",
     "title": "Equivalent Fractions: Clay Block Exploration",
-    "description": "Divide clay blocks into equal parts and discover that different fractions can represent the same value — hands-on visual learning of fraction equivalence.",
+    "description": "Divide clay blocks into equal parts and discover that different fractions can represent the same value \u2014 hands-on visual learning of fraction equivalence.",
     "category": "Mathematics",
     "grade": "G4-G6",
-    "tags": ["fractions", "equivalent-fractions", "visual-learning", "interactive"],
+    "tags": [
+      "fractions",
+      "equivalent-fractions",
+      "visual-learning",
+      "interactive"
+    ],
     "status": "published",
     "demoUrl": "/equivalent-fractions/",
-    "thumbnail": null
+    "thumbnail": "/thumbs/equivalent-fractions.png"
   },
   {
     "slug": "comparing-fractions",
     "title": "Comparing Fractions Visually",
-    "description": "Use chocolate-bar models to compare fractions side by side — students build intuition for fraction size through hands-on visual manipulation.",
+    "description": "Use chocolate-bar models to compare fractions side by side \u2014 students build intuition for fraction size through hands-on visual manipulation.",
     "category": "Mathematics",
     "grade": "G3-G5",
-    "tags": ["fractions", "visual", "comparison"],
+    "tags": [
+      "fractions",
+      "visual",
+      "comparison"
+    ],
     "status": "published",
     "demoUrl": "/comparing-fractions/",
-    "thumbnail": null
+    "thumbnail": "/thumbs/comparing-fractions.png"
   },
   {
     "slug": "cbse-digital-book",
-    "title": "Fractions – Interactive Digital Book",
+    "title": "Fractions \u2013 Interactive Digital Book",
     "description": "A page-flip digital book covering CBSE Class 5 fractions, with embedded hotspots that open the Comparing Fractions and Chocolate Fractions applets directly from the relevant pages.",
     "category": "Mathematics",
     "grade": "Class 5",
-    "tags": ["fractions", "digital-book", "cbse", "interactive", "page-flip"],
+    "tags": [
+      "fractions",
+      "digital-book",
+      "cbse",
+      "interactive",
+      "page-flip"
+    ],
     "status": "unlisted",
     "demoUrl": "/cbse-digital-book/",
-    "thumbnail": null
+    "thumbnail": "/thumbs/cbse-digital-book.png"
   },
   {
     "slug": "cbse-surface-area",
-    "title": "Surface Area of a Cylinder – Interactive Digital Book",
+    "title": "Surface Area of a Cylinder \u2013 Interactive Digital Book",
     "description": "A page-flip digital book covering CBSE Class 8 surface area of cylinders, with an embedded interactive applet that lets students explore the net of a cylinder and derive the formula step by step.",
     "category": "Mathematics",
     "grade": "Class 8",
-    "tags": ["surface-area", "cylinder", "digital-book", "cbse", "interactive", "page-flip"],
+    "tags": [
+      "surface-area",
+      "cylinder",
+      "digital-book",
+      "cbse",
+      "interactive",
+      "page-flip"
+    ],
     "status": "unlisted",
     "demoUrl": "/cbse-surface-area/",
-    "thumbnail": null
+    "thumbnail": "/thumbs/cbse-surface-area.png"
   },
   {
     "slug": "chocolate-fractions",
-    "title": "Boojho's Chocolate Sharing – Equivalent Fractions",
-    "description": "Step-by-step visual exploration where students shade and split chocolate-bar wholes to discover that 1/2 = 2/4 and 1/3 = 2/6 — building a concrete understanding of equivalent fractions through guided interaction.",
+    "title": "Boojho's Chocolate Sharing \u2013 Equivalent Fractions",
+    "description": "Step-by-step visual exploration where students shade and split chocolate-bar wholes to discover that 1/2 = 2/4 and 1/3 = 2/6 \u2014 building a concrete understanding of equivalent fractions through guided interaction.",
     "category": "Mathematics",
     "grade": "Class 5",
-    "tags": ["fractions", "equivalent-fractions", "cbse", "math"],
+    "tags": [
+      "fractions",
+      "equivalent-fractions",
+      "cbse",
+      "math"
+    ],
     "status": "live",
     "demoUrl": "/chocolate-fractions/",
-    "thumbnail": null
+    "thumbnail": "/thumbs/chocolate-fractions.png"
   },
   {
     "slug": "modifiers",
     "title": "Modifiers: Word, Phrase or Clause?",
-    "description": "Drag \"only\" through a sentence to see one word change its meaning, then classify modifiers as a word, phrase, or clause across ten practice sentences — built for UPSC and competitive-exam English grammar.",
+    "description": "Drag \"only\" through a sentence to see one word change its meaning, then classify modifiers as a word, phrase, or clause across ten practice sentences \u2014 built for UPSC and competitive-exam English grammar.",
     "category": "English",
     "grade": "UPSC / Competitive Exams",
-    "tags": ["grammar", "modifiers", "english", "upsc", "drag-and-drop"],
+    "tags": [
+      "grammar",
+      "modifiers",
+      "english",
+      "upsc",
+      "drag-and-drop"
+    ],
     "status": "published",
     "demoUrl": "/modifiers/",
     "thumbnail": "/thumbs/modifiers.png"
@@ -112,23 +164,38 @@
   {
     "slug": "misplaced-modifiers",
     "title": "Misplaced Modifiers",
-    "description": "Choose what \"almost\" should modify, then drag misplaced modifiers next to the word they actually describe across eight practice sentences — built for UPSC and competitive-exam English grammar.",
+    "description": "Choose what \"almost\" should modify, then drag misplaced modifiers next to the word they actually describe across eight practice sentences \u2014 built for UPSC and competitive-exam English grammar.",
     "category": "English",
     "grade": "UPSC / Competitive Exams",
-    "tags": ["grammar", "modifiers", "misplaced-modifiers", "english", "upsc", "drag-and-drop"],
+    "tags": [
+      "grammar",
+      "modifiers",
+      "misplaced-modifiers",
+      "english",
+      "upsc",
+      "drag-and-drop"
+    ],
     "status": "published",
     "demoUrl": "/misplaced-modifiers/",
     "thumbnail": "/thumbs/misplaced-modifiers.png"
   },
   {
     "slug": "modifiers-digital-book",
-    "title": "Modifiers – Interactive Digital Book",
+    "title": "Modifiers \u2013 Interactive Digital Book",
     "description": "A page-flip digital book covering Chapter 1 of the UPSC Grammar Blueprint, with embedded hotspots that open the Modifiers and Misplaced Modifiers applets directly from the relevant pages.",
     "category": "English",
     "grade": "UPSC / Competitive Exams",
-    "tags": ["grammar", "modifiers", "english", "upsc", "digital-book", "interactive", "page-flip"],
+    "tags": [
+      "grammar",
+      "modifiers",
+      "english",
+      "upsc",
+      "digital-book",
+      "interactive",
+      "page-flip"
+    ],
     "status": "unlisted",
     "demoUrl": "/modifiers-digital-book/",
-    "thumbnail": null
+    "thumbnail": "/thumbs/modifiers-digital-book.png"
   }
 ]
