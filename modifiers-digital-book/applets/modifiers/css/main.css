@@ -1,0 +1,791 @@
+/* Modifiers applet — 1920x1080 fixed canvas, scaled via --scaleFactor. */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --scaleFactor: 1;
+  --base-width: 1920px;
+  --base-height: 1080px;
+
+  /* Palette sampled from DOC/Modifiers.pdf */
+  --color-page-bg-top: #9b8fd0;
+  --color-page-bg-bottom: #b9a9dd;
+  --color-card: #f2f2f2;
+  --color-accent: #e6007e;          /* magenta title chip + sentence border */
+  --color-chip: #16386b;            /* navy draggable chip */
+  --color-chip-light: #2a5ca8;
+  --color-correct-base: #6aa84f;    /* green bubble / correct drop */
+  --color-correct-light: #b6d7a8;
+  --color-wrong-base: #d97b73;      /* salmon bubble / wrong drop */
+  --color-option: #d4a017;          /* gold Word/Phrase/Clause buttons */
+  --color-option-dark: #a67c00;
+  --color-continue: #f6b26b;        /* orange Continue */
+  --color-panel-blue: #c3d3ea;      /* "Describing:" panel */
+  --color-panel-pink: #ec7fc0;      /* screen 4 MODIFIERS panel */
+  --color-panel-tan: #d9c2a5;       /* screen 9 definition band */
+  --color-target: #8e7cc3;          /* purple target header */
+  --color-target-zone: #f9cb9c;     /* orange drop zone */
+  --color-muted: #b0b0b0;
+  --color-text: #1a1a1a;
+  --color-link: #12406e;
+
+  --font-family-primary: Arial, Helvetica, sans-serif;
+}
+
+html, body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  font-family: var(--font-family-primary);
+  background: #6f639f;
+  color: var(--color-text);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.responsive-container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.responsive-wrapper {
+  width: var(--base-width);
+  height: var(--base-height);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: top left;
+  transform: scale(var(--scaleFactor)) translate(-50%, -50%);
+  background: linear-gradient(160deg, var(--color-page-bg-top) 0%, var(--color-page-bg-bottom) 100%);
+}
+
+#app { width: 100%; height: 100%; }
+
+/* ---------- Shell ---------- */
+
+.modifier-applet {
+  width: 1920px;
+  height: 1080px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding: 0 64px 40px;
+}
+
+.applet-header {
+  height: 108px;
+  flex: 0 0 108px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  color: var(--color-text);
+  text-align: center;
+}
+
+/* Pink title chip used on screens 5-16 */
+.applet-header--chip span {
+  background: var(--color-accent);
+  color: #ffffff;
+  font-weight: bold;
+  padding: 12px 44px;
+  border-radius: 10px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+}
+
+.applet-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.stage-card {
+  flex: 1;
+  background: var(--color-card);
+  border-radius: 56px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+  padding: 48px 64px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-height: 0;
+}
+
+.applet-footer {
+  height: 96px;
+  flex: 0 0 96px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.instruction {
+  font-size: 34px;
+  text-align: center;
+  line-height: 1.35;
+  margin-bottom: 12px;
+}
+
+/* Screens 10-16 left-align the instruction (reference/screen-10.png). */
+.instruction--left { text-align: left; padding-left: 12px; }
+
+.instruction strong { color: var(--color-link); }
+
+/* ---------- Continue button ---------- */
+
+.continue-button {
+  background: var(--color-continue);
+  border: 1px solid #c9884a;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 34px;
+  color: var(--color-text);
+  padding: 12px 44px;
+  cursor: pointer;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+}
+
+.continue-button:hover { filter: brightness(1.05); }
+
+.continue-button--pulse { animation: continuePulse 1.2s ease-in-out infinite; }
+
+@keyframes continuePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.07); }
+}
+
+/* ---------- Sentence box ---------- */
+
+.sentence-box {
+  border: 3px solid var(--color-accent);
+  border-radius: 18px;
+  background: #ffffff;
+  padding: 22px 40px;
+  font-size: 42px;
+  line-height: 1.5;
+  text-align: center;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 104px;
+}
+
+.sentence-box--plain { border-color: #cccccc; }
+
+/* Navy chip — the draggable modifier */
+.chip {
+  background: linear-gradient(180deg, var(--color-chip-light) 0%, var(--color-chip) 100%);
+  color: #ffffff;
+  border-radius: 10px;
+  padding: 6px 22px;
+  font-size: 38px;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.35);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.chip--dragging { opacity: 0.35; }
+
+/* Positioned in LOCAL (1920x1080) coordinates by app.js's screenToLocal, as a
+   child of .responsive-wrapper — so it inherits scale(--scaleFactor) exactly
+   like the chip it represents, instead of rendering at a fixed screen size
+   that only matches the canvas at 100% zoom. See attachChipDrag(). */
+.drag-ghost {
+  position: absolute;
+  z-index: 999;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(180deg, var(--color-chip-light) 0%, var(--color-chip) 100%);
+  color: #ffffff;
+  border-radius: 10px;
+  padding: 6px 22px;
+  font-size: 38px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+}
+
+/* Drop slots between words on screens 1-3 */
+/* Screens 1-3 have no placeholder boxes — words simply reflow around the chip.
+   The whole sentence box is the drop area; the nearest word gap wins. */
+.only-word { user-select: none; }
+
+/* ---------- Speech bubble ---------- */
+
+.bubble {
+  position: relative;
+  background: var(--color-correct-base);
+  border: 1px solid #4c7a35;
+  border-radius: 14px;
+  padding: 20px 30px;
+  font-size: 30px;
+  line-height: 1.35;
+  text-align: center;
+  max-width: 620px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+}
+
+.bubble--wrong { background: var(--color-wrong-base); border-color: #a85a52; }
+
+.bubble::after {
+  content: '';
+  position: absolute;
+  top: -26px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 22px solid transparent;
+  border-right: 22px solid transparent;
+  border-bottom: 26px solid var(--color-correct-base);
+}
+
+.bubble--wrong::after { border-bottom-color: var(--color-wrong-base); }
+
+/* Anchored bubble: sits left-aligned within the sentence's width and its tail
+   tracks --tail-x, set in JS to the centre of the chip it explains. */
+.bubble--anchored {
+  align-self: flex-start;
+  margin-top: 8px;
+  transition: margin-left 0.25s ease;
+}
+
+/* --tail-x is set in JS, in unscaled local px measured from the bubble's own
+   left edge, so the tail lands exactly under the centre of the chip. */
+.bubble--anchored::after {
+  left: var(--tail-x, 50%);
+  transition: left 0.25s ease;
+}
+
+.bubble-hint {
+  display: block;
+  margin-top: 8px;
+  font-size: 24px;
+  font-style: italic;
+  opacity: 0.9;
+}
+
+/* ---------- Screen 1-3 ---------- */
+
+.only-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+}
+
+/* The sentence and its bubble share one column so the bubble's margin-left,
+   measured against the sentence box, lines the tail up with the chip. */
+.only-sentence-group {
+  width: 1080px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+}
+
+.only-stage .sentence-box { width: 100%; }
+
+/* Positioned by app.js's positionOnlyHint in local px relative to
+   .only-sentence-group (its parent): sits just right of the chip, vertically
+   centred on it, clear of both the chip and the meaning bubble beneath it. */
+.only-hint-anchor {
+  position: absolute;
+  transform: translate(4px, -50%);
+  z-index: 5;
+}
+
+/* ---------- Screen 4 ---------- */
+
+.s4-body { flex: 1; display: flex; gap: 48px; align-items: center; }
+.s4-list { flex: 0 0 62%; display: flex; flex-direction: column; gap: 32px; }
+
+.s4-variant {
+  border: 1px solid #cccccc;
+  border-radius: 16px;
+  background: #fafafa;
+  padding: 18px 32px;
+  font-size: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.s4-panel {
+  flex: 1;
+  background: var(--color-panel-pink);
+  border-radius: 28px;
+  padding: 40px 32px;
+  font-size: 30px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.s4-panel strong { font-weight: bold; }
+
+/* ---------- Screens 5-8 ---------- */
+
+.s5-body { flex: 1; display: flex; gap: 56px; align-items: center; }
+
+.s5-options { flex: 0 0 26%; display: flex; flex-direction: column; gap: 46px; }
+
+.type-button {
+  background: linear-gradient(180deg, #f1c232 0%, var(--color-option-dark) 100%);
+  border: 1px solid #7f6000;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 32px;
+  font-weight: bold;
+  color: var(--color-text);
+  padding: 16px 10px;
+  cursor: pointer;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+}
+
+.type-button--active {
+  background: linear-gradient(180deg, #93c47d 0%, #6aa84f 100%);
+  border-color: #4c7a35;
+}
+
+.type-button--visited {
+  background: linear-gradient(180deg, #d9d9d9 0%, #b0b0b0 100%);
+  border-color: #8f8f8f;
+  color: #3a3a3a;
+}
+
+/* Fixed height (not align-self: stretch) so the panel never grows to fill the
+   row when the tells-bar below it is absent — that growth is what caused the
+   whole block to shift up the moment a type example added the tells-bar. */
+.s5-panel {
+  flex: 1;
+  height: 460px;
+  background: var(--color-panel-blue);
+  border: 1px solid #9aa9bf;
+  border-radius: 36px;
+  padding: 54px 48px;
+  font-size: 34px;
+  line-height: 1.5;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  box-sizing: border-box;
+}
+
+.example-sentence {
+  font-size: 40px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.example-mod {
+  border: 2px solid #e69138;
+  border-radius: 10px;
+  padding: 4px 16px;
+  color: var(--color-link);
+  font-weight: bold;
+}
+
+/* align-self: flex-start + margin-left (set in JS, in local px) centres these
+   under .example-mod's actual position rather than the panel's centre —
+   .example-mod's x varies with the sentence text and can wrap. */
+.example-arrow {
+  font-size: 46px;
+  color: #e69138;
+  line-height: 1;
+  align-self: flex-start;
+  transition: margin-left 0.2s ease;
+}
+
+.example-tag {
+  background: var(--color-accent);
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 8px 30px;
+  font-size: 34px;
+  align-self: flex-start;
+  white-space: nowrap;
+  transition: margin-left 0.2s ease;
+}
+
+/* This slot's height is reserved by .tells-bar-slot even before a type is
+   picked, so the tells-bar appearing later never shifts the panel above it. */
+.tells-bar-slot {
+  height: 82px;
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tells-bar {
+  background: #e69138;
+  border-radius: 8px;
+  padding: 14px 30px;
+  font-size: 32px;
+  text-align: center;
+}
+
+/* ---------- Screen 9 ---------- */
+
+.s9-band {
+  background: var(--color-panel-tan);
+  border: 1px solid #b09a7d;
+  border-radius: 24px;
+  padding: 34px 48px;
+  font-size: 38px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.s9-band .kw { color: var(--color-accent); font-weight: bold; }
+.s9-band strong { font-weight: bold; }
+
+.s9-tree { flex: 1; display: flex; align-items: center; gap: 40px; padding: 0 40px; position: relative; }
+
+.s9-root {
+  background: var(--color-accent);
+  color: #ffffff;
+  border-radius: 6px;
+  padding: 14px 30px;
+  font-size: 32px;
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* Vertical trunk connecting "Modifiers" to the three branches, drawn by JS
+   (positionS9Connector) so it spans exactly root-centre to last-branch-centre
+   at any zoom, instead of three disconnected arrows. */
+.s9-connector-line {
+  position: absolute;
+  width: 3px;
+  background: #e69138;
+}
+
+/* Each branch's short horizontal stub, meeting the vertical line at stubX. */
+.s9-connector-stub {
+  width: 40px;
+  height: 3px;
+  background: #e69138;
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.s9-branches { flex: 1; display: flex; flex-direction: column; gap: 34px; }
+.s9-branch { display: flex; align-items: center; gap: 22px; }
+
+.s9-node {
+  background: linear-gradient(180deg, #9fc5e8 0%, #6fa8dc 100%);
+  border: 1px solid #4a86c8;
+  border-radius: 8px;
+  padding: 12px 0;
+  width: 216px;
+  text-align: center;
+  font-size: 32px;
+  font-weight: bold;
+  font-family: inherit;
+  color: var(--color-text);
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+}
+
+.s9-node:hover { filter: brightness(1.05); }
+
+/* Once its definition is revealed, the node reads as "done" and stops being
+   clickable (handled in JS), styled like the other completed-state buttons. */
+.s9-node--done {
+  background: linear-gradient(180deg, #93c47d 0%, #6aa84f 100%);
+  border-color: #4c7a35;
+  cursor: default;
+}
+
+/* While a different node is mid-reveal, the rest are visually inert so it's
+   clear only one definition types out at a time. */
+.s9-node--blocked {
+  opacity: 0.55;
+  cursor: default;
+}
+.s9-node--blocked:hover { filter: none; }
+
+.s9-desc { font-size: 28px; font-weight: bold; color: #274e13; line-height: 1.35; min-height: 1.35em; }
+.s9-connector { color: #e69138; font-size: 34px; }
+.s9-connector--dark { color: #1a1a1a; }
+
+/* Blinking cursor while a definition is mid-typewriter-reveal. */
+.s9-caret {
+  display: inline-block;
+  width: 3px;
+  height: 26px;
+  background: #274e13;
+  margin-left: 4px;
+  vertical-align: text-bottom;
+  animation: s9CaretBlink 0.8s step-end infinite;
+}
+
+@keyframes s9CaretBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ---------- Screens 10-16: question engine ---------- */
+
+/* Matches reference/screen-10.png: instruction near the top, full-width
+   sentence box, targets below it — not vertically centred in the card. */
+.q-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 34px;
+  padding-top: 56px;
+  position: relative;
+}
+
+.q-body .sentence-box { width: 100%; }
+
+/* Positioned by app.js's positionQHint in local px relative to #q-body.
+   left/top are set to the chip (the animation's start point); the keyframes
+   below then carry it down to the target box via the --start and --end custom
+   properties and jump back, reading as a repeated tap-and-drag rather than a
+   static pointer. */
+.q-hint-anchor {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  animation: qHintDrag 2.2s ease-in-out infinite;
+}
+
+@keyframes qHintDrag {
+  0% {
+    left: var(--start-x, 0);
+    top: var(--start-y, 0);
+    opacity: 0;
+  }
+  8%, 20% {
+    left: var(--start-x, 0);
+    top: var(--start-y, 0);
+    opacity: 1;
+  }
+  60%, 75% {
+    left: var(--end-x, 0);
+    top: var(--end-y, 0);
+    opacity: 1;
+  }
+  90%, 100% {
+    left: var(--end-x, 0);
+    top: var(--end-y, 0);
+    opacity: 0;
+  }
+}
+
+.q-progress { font-size: 26px; color: #666666; align-self: flex-start; }
+
+.word {
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 2px 4px;
+  transition: background 0.12s ease;
+}
+
+.word:hover { background: rgba(230, 0, 126, 0.12); }
+.word--wrong { color: #d40000; }
+.word--teeter { animation: teeterShake 0.5s ease-in-out; }
+
+@keyframes teeterShake {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  20% { transform: translateX(-8px) rotate(-3deg); }
+  40% { transform: translateX(8px) rotate(3deg); }
+  60% { transform: translateX(-6px) rotate(-2deg); }
+  80% { transform: translateX(6px) rotate(2deg); }
+}
+
+/* Wraps .targets + the feedback bubble so the bubble's margin-left, computed
+   in app.js's positionQBubble, is measured against the same box the three
+   target rects are measured against. Full width (matching .sentence-box)
+   so the bubble has room to reach the two outer targets, not just the middle
+   one — a shrink-wrapped group would clamp the bubble to a too-narrow range. */
+.targets-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* align-self: stretch so this spans .targets-group's full width — otherwise
+   it shrink-wraps to its own content and sits flush-left, leaving
+   justify-content: center with no extra space to actually centre within. */
+.targets { display: flex; gap: 56px; justify-content: center; align-self: stretch; }
+
+.target { display: flex; flex-direction: column; align-items: center; width: 280px; }
+
+.target-header {
+  background: var(--color-target);
+  border: 1px solid #6d5aa0;
+  border-radius: 8px 8px 0 0;
+  width: 100%;
+  text-align: center;
+  font-size: 32px;
+  font-weight: bold;
+  padding: 10px 0;
+}
+
+.target--idle .target-header {
+  background: linear-gradient(180deg, #d9d9d9 0%, #b7b7b7 100%);
+  border-color: #999999;
+  color: #7a7a7a;
+}
+
+.target-zone {
+  width: 100%;
+  min-height: 108px;
+  border: 2px solid #e69138;
+  border-radius: 0 0 10px 10px;
+  background: radial-gradient(circle at 50% 40%, #ffe5c9 0%, var(--color-target-zone) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Match .chip's 38px so a dropped modifier reads the same size it did while
+     being dragged, and text-align: center so multi-word labels that wrap to
+     two lines (e.g. "sitting near the / window") aren't left-ragged inside
+     the centered flex box — justify-content only centers the block, not the
+     individual wrapped lines within it. */
+  font-size: 38px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 1.25;
+  padding: 8px 16px;
+  box-sizing: border-box;
+}
+
+.target--idle .target-zone {
+  border-color: #999999;
+  background: linear-gradient(180deg, #cccccc 0%, #b7b7b7 100%);
+}
+
+.target--hover .target-zone { outline: 3px dashed var(--color-accent); }
+
+.target--wrong .target-zone {
+  background: linear-gradient(180deg, #ec9a94 0%, var(--color-wrong-base) 100%);
+  border-color: #a85a52;
+}
+
+.target--correct .target-header {
+  background: linear-gradient(180deg, #93c47d 0%, #6aa84f 100%);
+  border-color: #4c7a35;
+}
+
+.target--correct .target-zone {
+  background: linear-gradient(180deg, #d9ead3 0%, var(--color-correct-light) 100%);
+  border-color: #6aa84f;
+}
+
+/* ---------- Screens 17-21: build & connect ---------- */
+
+.build-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 72px; }
+
+.build-sentence { min-width: 1080px; max-width: 1280px; }
+.build-sentence .mod { color: var(--color-link); font-weight: bold; }
+
+.build-blank {
+  display: inline-block;
+  min-width: 150px;
+  border-bottom: 4px solid #e69138;
+  height: 34px;
+}
+
+.build-cards { display: flex; gap: 42px; justify-content: center; flex-wrap: wrap; }
+
+.build-card {
+  background: linear-gradient(160deg, #1f4f96 0%, var(--color-chip) 55%, #10294f 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: 32px;
+  padding: 26px 34px;
+  min-width: 262px;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.build-card:hover:not(:disabled) { filter: brightness(1.12); }
+
+.build-card:disabled {
+  background: linear-gradient(160deg, #d0d0d0 0%, #a8a8a8 60%, #cfcfcf 100%);
+  color: #ffffff;
+  cursor: default;
+}
+
+.build-card--pulse { animation: cardPulse 1.4s ease-in-out infinite; }
+
+@keyframes cardPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+/* ---------- Gesture hint ---------- */
+
+
+/* ---------- Affordances: gesture hints + glow ---------- */
+
+/* Animated finger. Decorative only — never blocks the thing it points at. */
+.gesture-hint {
+  position: absolute;
+  pointer-events: none;
+  width: 110px;
+  z-index: 40;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.35));
+}
+
+.gesture-hint-img { width: 100%; display: block; }
+
+/* Anchored just below-right of the target, so the fingertip sits on it. */
+.gesture-hint--tap { width: 96px; }
+.gesture-hint--drag { width: 96px; }
+
+/* Placed relative to a positioned parent by these modifiers. */
+.gesture-hint--below { top: 100%; left: 50%; margin-left: -18px; margin-top: -14px; }
+.gesture-hint--chip { top: 78%; left: 62%; }
+
+/* Glow — used instead of a finger when SEVERAL targets are all tappable and a
+   single pointing finger would imply only one of them is the right one. */
+@keyframes targetGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 179, 0, 0.0); }
+  50% { box-shadow: 0 0 0 10px rgba(255, 179, 0, 0.35); }
+}
+
+.glow-target {
+  animation: targetGlow 1.6s ease-in-out infinite;
+  border-radius: 10px;
+}
+
+/* Stagger so the three read as a set to scan, not one thing to hit. */
+.glow-target:nth-of-type(2) { animation-delay: 0.22s; }
+.glow-target:nth-of-type(3) { animation-delay: 0.44s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .glow-target,
+  .continue-button--pulse,
+  .build-card--pulse,
+  .word--teeter,
+  .s9-caret { animation: none !important; }
+  /* Freeze at the chip (the animation's start point) rather than at the
+     unset var() defaults, which would otherwise leave it pinned at 0,0. */
+  .q-hint-anchor {
+    animation: none !important;
+    left: var(--start-x, 0);
+    top: var(--start-y, 0);
+  }
+}

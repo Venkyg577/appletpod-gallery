@@ -97,5 +97,38 @@
     "status": "live",
     "demoUrl": "/chocolate-fractions/",
     "thumbnail": null
+  },
+  {
+    "slug": "modifiers",
+    "title": "Modifiers: Word, Phrase or Clause?",
+    "description": "Drag \"only\" through a sentence to see one word change its meaning, then classify modifiers as a word, phrase, or clause across ten practice sentences — built for UPSC and competitive-exam English grammar.",
+    "category": "English",
+    "grade": "UPSC / Competitive Exams",
+    "tags": ["grammar", "modifiers", "english", "upsc", "drag-and-drop"],
+    "status": "published",
+    "demoUrl": "/modifiers/",
+    "thumbnail": null
+  },
+  {
+    "slug": "misplaced-modifiers",
+    "title": "Misplaced Modifiers",
+    "description": "Choose what \"almost\" should modify, then drag misplaced modifiers next to the word they actually describe across eight practice sentences — built for UPSC and competitive-exam English grammar.",
+    "category": "English",
+    "grade": "UPSC / Competitive Exams",
+    "tags": ["grammar", "modifiers", "misplaced-modifiers", "english", "upsc", "drag-and-drop"],
+    "status": "published",
+    "demoUrl": "/misplaced-modifiers/",
+    "thumbnail": null
+  },
+  {
+    "slug": "modifiers-digital-book",
+    "title": "Modifiers – Interactive Digital Book",
+    "description": "A page-flip digital book covering Chapter 1 of the UPSC Grammar Blueprint, with embedded hotspots that open the Modifiers and Misplaced Modifiers applets directly from the relevant pages.",
+    "category": "English",
+    "grade": "UPSC / Competitive Exams",
+    "tags": ["grammar", "modifiers", "english", "upsc", "digital-book", "interactive", "page-flip"],
+    "status": "unlisted",
+    "demoUrl": "/modifiers-digital-book/",
+    "thumbnail": null
   }
 ]

@@ -1,0 +1,521 @@
+/* Modifiers applet — 1920x1080 fixed canvas, scaled via --scaleFactor. */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --scaleFactor: 1;
+  --base-width: 1920px;
+  --base-height: 1080px;
+
+  /* Palette sampled from DOC/Modifiers.pdf */
+  --color-page-bg-top: #9b8fd0;
+  --color-page-bg-bottom: #b9a9dd;
+  --color-card: #f2f2f2;
+  --color-accent: #e6007e;          /* magenta title chip + sentence border */
+  --color-chip: #16386b;            /* navy draggable chip */
+  --color-chip-light: #2a5ca8;
+  --color-correct-base: #6aa84f;    /* green bubble / correct drop */
+  --color-correct-light: #b6d7a8;
+  --color-wrong-base: #d97b73;      /* salmon bubble / wrong drop */
+  --color-option: #d4a017;          /* gold Word/Phrase/Clause buttons */
+  --color-option-dark: #a67c00;
+  --color-continue: #f6b26b;        /* orange Continue */
+  --color-title-chip: #6d9eeb;      /* blue Misplaced Modifier title chip */
+  --color-panel-blue: #c3d3ea;      /* "Describing:" panel */
+  --color-panel-pink: #ec7fc0;      /* screen 4 MODIFIERS panel */
+  --color-panel-tan: #d9c2a5;       /* screen 9 definition band */
+  --color-target: #8e7cc3;          /* purple target header */
+  --color-target-zone: #f9cb9c;     /* orange drop zone */
+  --color-muted: #b0b0b0;
+  --color-text: #1a1a1a;
+  --color-link: #12406e;
+
+  --font-family-primary: Arial, Helvetica, sans-serif;
+}
+
+html, body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  font-family: var(--font-family-primary);
+  background: #6f639f;
+  color: var(--color-text);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.responsive-container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.responsive-wrapper {
+  width: var(--base-width);
+  height: var(--base-height);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: top left;
+  transform: scale(var(--scaleFactor)) translate(-50%, -50%);
+  background: linear-gradient(160deg, var(--color-page-bg-top) 0%, var(--color-page-bg-bottom) 100%);
+}
+
+#app { width: 100%; height: 100%; }
+
+/* ---------- Shell ---------- */
+
+.modifier-applet {
+  width: 1920px;
+  height: 1080px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding: 0 64px 40px;
+}
+
+.applet-header {
+  height: 108px;
+  flex: 0 0 108px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  color: var(--color-text);
+  text-align: center;
+}
+
+/* Blue title chip — the deck uses blue for Misplaced Modifier throughout
+   (pages 22-29), distinguishing it from Applet 1's magenta "Modifiers" chip. */
+.applet-header--chip span {
+  background: var(--color-title-chip);
+  color: var(--color-text);
+  font-weight: normal;
+  padding: 12px 44px;
+  border-radius: 10px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+}
+
+.applet-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.stage-card {
+  flex: 1;
+  background: var(--color-card);
+  border-radius: 56px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+  padding: 48px 64px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-height: 0;
+}
+
+.applet-footer {
+  height: 96px;
+  flex: 0 0 96px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.instruction {
+  font-size: 34px;
+  text-align: center;
+  line-height: 1.35;
+  margin-bottom: 12px;
+}
+
+/* Screens 10-16 left-align the instruction (reference/screen-10.png). */
+.instruction--left { text-align: left; padding-left: 12px; }
+
+.instruction strong { color: var(--color-link); }
+
+/* ---------- Continue button ---------- */
+
+.continue-button {
+  background: var(--color-continue);
+  border: 1px solid #c9884a;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 34px;
+  color: var(--color-text);
+  padding: 12px 44px;
+  cursor: pointer;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+}
+
+.continue-button:hover { filter: brightness(1.05); }
+
+.continue-button--pulse { animation: continuePulse 1.2s ease-in-out infinite; }
+
+@keyframes continuePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.07); }
+}
+
+/* ---------- Sentence box ---------- */
+
+.sentence-box {
+  border: 3px solid var(--color-accent);
+  border-radius: 18px;
+  background: #ffffff;
+  padding: 22px 40px;
+  font-size: 42px;
+  line-height: 1.5;
+  text-align: center;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 104px;
+}
+
+.sentence-box--plain { border-color: #cccccc; }
+
+/* Navy chip — the draggable modifier */
+.chip {
+  background: linear-gradient(180deg, var(--color-chip-light) 0%, var(--color-chip) 100%);
+  color: #ffffff;
+  border-radius: 10px;
+  padding: 6px 22px;
+  font-size: 38px;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.35);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.chip--dragging { opacity: 0.35; }
+
+/* Positioned in LOCAL (1920x1080) coordinates by app.js's screenToLocal, as a
+   child of .responsive-wrapper — so it inherits scale(--scaleFactor) exactly
+   like the chip it represents, instead of rendering at a fixed screen size
+   that only matches the canvas at 100% zoom. See attachChipDrag(). */
+.drag-ghost {
+  position: absolute;
+  z-index: 999;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(180deg, var(--color-chip-light) 0%, var(--color-chip) 100%);
+  color: #ffffff;
+  border-radius: 10px;
+  padding: 6px 22px;
+  font-size: 38px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+}
+
+/* Drop slots between words on screens 1-3 */
+/* Screens 1-3 have no placeholder boxes — words simply reflow around the chip.
+   The whole sentence box is the drop area; the nearest word gap wins. */
+.only-word { user-select: none; }
+
+/* ---------- Speech bubble ---------- */
+
+.bubble {
+  position: relative;
+  background: var(--color-correct-base);
+  border: 1px solid #4c7a35;
+  border-radius: 14px;
+  padding: 20px 30px;
+  font-size: 30px;
+  line-height: 1.35;
+  text-align: center;
+  max-width: 620px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+}
+
+.bubble--wrong { background: var(--color-wrong-base); border-color: #a85a52; }
+
+.bubble::after {
+  content: '';
+  position: absolute;
+  top: -26px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 22px solid transparent;
+  border-right: 22px solid transparent;
+  border-bottom: 26px solid var(--color-correct-base);
+}
+
+.bubble--wrong::after { border-bottom-color: var(--color-wrong-base); }
+
+/* Anchored bubble: sits left-aligned within the sentence's width and its tail
+   tracks --tail-x, set in JS to the centre of the chip it explains. */
+.bubble--anchored {
+  align-self: flex-start;
+  margin-top: 8px;
+  transition: margin-left 0.25s ease;
+}
+
+/* --tail-x is set in JS, in unscaled local px measured from the bubble's own
+   left edge, so the tail lands exactly under the centre of the chip. */
+.bubble--anchored::after {
+  left: var(--tail-x, 50%);
+  transition: left 0.25s ease;
+}
+
+.bubble-hint {
+  display: block;
+  margin-top: 8px;
+  font-size: 24px;
+  font-style: italic;
+  opacity: 0.9;
+}
+
+/* ---------- Shared: definition band (from Applet 1's screen 9) ---------- */
+
+.def-band {
+  background: var(--color-panel-tan);
+  border: 1px solid #b09a7d;
+  border-radius: 24px;
+  padding: 34px 48px;
+  font-size: 36px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.def-band strong { font-weight: bold; }
+
+/* ---------- Screen 1: wrong/right comparison (deck p26) ---------- */
+
+.mm-compare {
+  flex: 1;
+  display: flex;
+  gap: 64px;
+  padding: 0 24px;
+  align-items: stretch;
+}
+
+.mm-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+/* Sentence card at the top of each column. Magenta border matches the deck. */
+.mm-sentence {
+  width: 100%;
+  border: 3px solid var(--color-accent);
+  border-radius: 14px;
+  padding: 20px 26px;
+  font-size: 34px;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.mm-sentence .mod { color: var(--color-link); font-weight: bold; }
+
+.mm-col--wrong .mm-sentence { background: #eda9a9; }
+.mm-col--right .mm-sentence { background: #7cab5c; }
+
+/* Arrow + verdict mark between the sentence and its meaning. */
+.mm-link {
+  flex: 1;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+}
+
+.mm-arrow { font-size: 64px; line-height: 1; }
+.mm-col--wrong .mm-arrow { color: #cc0000; }
+.mm-col--right .mm-arrow { color: #2e7d32; }
+
+.mm-mark { font-size: 60px; line-height: 1; font-weight: bold; }
+.mm-col--wrong .mm-mark { color: #cc0000; }
+.mm-col--right .mm-mark { color: #4a9c2d; }
+
+.mm-meaning {
+  width: 100%;
+  border-radius: 14px;
+  padding: 20px 26px;
+  font-size: 32px;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.mm-meaning strong { font-weight: bold; }
+
+.mm-col--wrong .mm-meaning { background: #eda9a9; border: 3px solid #cc0000; }
+.mm-col--right .mm-meaning { background: #7cab5c; border: 3px solid #4a9c2d; }
+
+/* ---------- Screens 2-5: "What should almost modify?" (deck p22-25) ---------- */
+
+.quiz-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  padding-top: 12px;
+}
+
+.quiz-sentence { width: 100%; }
+.quiz-sentence .mod { color: var(--color-link); font-weight: bold; }
+
+.quiz-question {
+  font-size: 34px;
+  font-weight: bold;
+  text-align: left;
+}
+
+/* Options stacked left, feedback bubble anchored to the right of them. */
+.quiz-main { flex: 1; display: flex; gap: 48px; align-items: flex-start; }
+
+.quiz-options {
+  flex: 0 0 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.option-button {
+  background: linear-gradient(180deg, #f5d049 0%, #e8c02f 100%);
+  border: 1px solid #b08c00;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 32px;
+  color: var(--color-text);
+  padding: 16px 20px;
+  cursor: pointer;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.28);
+}
+
+.option-button:hover:not(:disabled) { filter: brightness(1.05); }
+
+.option-button--wrong {
+  background: linear-gradient(180deg, #e08b84 0%, var(--color-wrong-base) 100%);
+  border-color: #a85a52;
+}
+
+.option-button--correct {
+  background: linear-gradient(180deg, #93c47d 0%, #6aa84f 100%);
+  border-color: #4c7a35;
+}
+
+.option-button:disabled { cursor: default; }
+
+/* The feedback bubble sits beside the options, with its tail pointing left at
+   the tapped pill — a side variant of the tail used elsewhere. */
+.quiz-feedback { flex: 1; display: flex; align-items: flex-start; }
+
+.bubble--side { margin-left: 18px; max-width: 760px; }
+
+.bubble--side::after {
+  top: var(--tail-y, 40px);
+  left: -26px;
+  transform: none;
+  border-left: none;
+  border-right: 26px solid var(--color-correct-base);
+  border-top: 20px solid transparent;
+  border-bottom: 20px solid transparent;
+}
+
+.bubble--side.bubble--wrong::after { border-right-color: var(--color-wrong-base); }
+
+.bubble-line { display: block; }
+.bubble-line + .bubble-line { margin-top: 14px; }
+.bubble-line strong { font-weight: bold; }
+
+/* ---------- Screens 6-9: drag the modifier into place ---------- */
+
+.drag-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  padding-top: 40px;
+}
+
+.drag-progress { font-size: 26px; color: #666666; align-self: flex-start; }
+
+.drag-sentence-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.drag-body .sentence-box { width: 100%; }
+
+/* Positioned by app.js's positionDragHint in local px relative to the
+   sentence box: just right of the modifier chip, vertically centred on it. */
+.drag-hint-anchor {
+  position: absolute;
+  transform: translate(4px, -50%);
+  z-index: 5;
+}
+
+/* Words are plain text; the modifier is the only draggable element. */
+.drag-word { user-select: none; }
+
+.chip--correct {
+  background: linear-gradient(180deg, #93c47d 0%, #38761d 100%);
+  border: 1px solid #2b5c14;
+}
+
+.chip--wrong {
+  background: linear-gradient(180deg, #e08b84 0%, #cc4125 100%);
+  border: 1px solid #a83a22;
+}
+
+.drag-corrected {
+  font-size: 32px;
+  font-weight: bold;
+  color: #274e13;
+  text-align: center;
+}
+
+/* ---------- Gesture hint ---------- */
+
+
+/* ---------- Affordances: gesture hints + glow ---------- */
+
+/* Animated finger. Decorative only — never blocks the thing it points at. */
+.gesture-hint {
+  position: absolute;
+  pointer-events: none;
+  width: 110px;
+  z-index: 40;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.35));
+}
+
+.gesture-hint-img { width: 100%; display: block; }
+
+/* Anchored just below-right of the target, so the fingertip sits on it. */
+.gesture-hint--tap { width: 96px; }
+.gesture-hint--drag { width: 130px; }
+
+/* Placed relative to a positioned parent by these modifiers. */
+.gesture-hint--below { top: 100%; left: 50%; margin-left: -18px; margin-top: -14px; }
+.gesture-hint--chip { top: 78%; left: 62%; }
+
+/* Glow — used instead of a finger when SEVERAL targets are all tappable and a
+   single pointing finger would imply only one of them is the right one. */
+@keyframes targetGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 179, 0, 0.0); }
+  50% { box-shadow: 0 0 0 10px rgba(255, 179, 0, 0.35); }
+}
+
+.glow-target {
+  animation: targetGlow 1.6s ease-in-out infinite;
+  border-radius: 10px;
+}
+
+/* Stagger so the three read as a set to scan, not one thing to hit. */
+.glow-target:nth-of-type(2) { animation-delay: 0.22s; }
+.glow-target:nth-of-type(3) { animation-delay: 0.44s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .glow-target,
+  .continue-button--pulse { animation: none !important; }
+}
