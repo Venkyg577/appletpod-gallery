@@ -107,7 +107,7 @@
     "tags": ["grammar", "modifiers", "english", "upsc", "drag-and-drop"],
     "status": "published",
     "demoUrl": "/modifiers/",
-    "thumbnail": null
+    "thumbnail": "/thumbs/modifiers.png"
   },
   {
     "slug": "misplaced-modifiers",
@@ -118,7 +118,7 @@
     "tags": ["grammar", "modifiers", "misplaced-modifiers", "english", "upsc", "drag-and-drop"],
     "status": "published",
     "demoUrl": "/misplaced-modifiers/",
-    "thumbnail": null
+    "thumbnail": "/thumbs/misplaced-modifiers.png"
   },
   {
     "slug": "modifiers-digital-book",
