@@ -211,7 +211,7 @@
       "cbse",
       "math"
     ],
-    "status": "unlisted",
+    "status": "live",
     "demoUrl": "/coordinates-floor-plan/",
     "thumbnail": "/thumbs/coordinates-floor-plan.png"
   },
@@ -229,7 +229,7 @@
       "cbse",
       "math"
     ],
-    "status": "unlisted",
+    "status": "live",
     "demoUrl": "/coordinates-plane/",
     "thumbnail": "/thumbs/coordinates-plane.png"
   },
@@ -247,7 +247,7 @@
       "cbse",
       "math"
     ],
-    "status": "unlisted",
+    "status": "live",
     "demoUrl": "/coordinates-distances/",
     "thumbnail": "/thumbs/coordinates-distances.png"
   },
@@ -265,7 +265,7 @@
       "cbse",
       "math"
     ],
-    "status": "unlisted",
+    "status": "live",
     "demoUrl": "/coordinates-quadrants/",
     "thumbnail": "/thumbs/coordinates-quadrants.png"
   },
@@ -282,7 +282,7 @@
       "cbse",
       "math"
     ],
-    "status": "unlisted",
+    "status": "live",
     "demoUrl": "/coordinates-distance-formula/",
     "thumbnail": "/thumbs/coordinates-distance-formula.png"
   }
