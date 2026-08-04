@@ -21,6 +21,17 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
+# Applets that load .jsx directly via <script type="text/babel"> need a
+# JavaScript MIME type. Netlify defaults .jsx to application/octet-stream,
+# which the browser refuses to execute under X-Content-Type-Options: nosniff.
+# Not marked immutable: these are unversioned source files, so a long
+# max-age would strand edits behind stale caches.
+[[headers]]
+  for = "/*.jsx"
+  [headers.values]
+    Content-Type = "text/javascript; charset=utf-8"
+    Cache-Control = "public, max-age=300"
+
 [[headers]]
   for = "/registry.json"
   [headers.values]
