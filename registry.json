@@ -285,5 +285,23 @@
     "status": "live",
     "demoUrl": "/coordinates-distance-formula/",
     "thumbnail": "/thumbs/coordinates-distance-formula.png"
+  },
+  {
+    "slug": "coordinates-digital-book",
+    "title": "Orienting Yourself: The Use of Coordinates – Interactive Digital Book",
+    "description": "A page-flip digital book covering CBSE Class 9 Chapter 1, with embedded hotspots that open the five coordinate geometry applets directly from the relevant figures.",
+    "category": "Mathematics",
+    "grade": "Class 9",
+    "tags": [
+      "coordinates",
+      "coordinate-geometry",
+      "digital-book",
+      "cbse",
+      "interactive",
+      "page-flip"
+    ],
+    "status": "unlisted",
+    "demoUrl": "/coordinates-digital-book/",
+    "thumbnail": "/thumbs/coordinates-digital-book.png"
   }
 ]

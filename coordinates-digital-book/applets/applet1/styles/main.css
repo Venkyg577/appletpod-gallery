@@ -1,0 +1,204 @@
+:root{
+  --scaleFactor: 1;
+  --font: 'Comfortaa', Arial, sans-serif;
+  --bg-deep: #091428;
+  --axis: #FF9F1A;
+  --green: #219150;
+  --green-light: #58D98B;
+  --pink: #E84C9A;
+  --callout: #3498DB;
+  --text: #ffffff;
+}
+
+*{ box-sizing: border-box; }
+html, body{ margin:0; padding:0; height:100%; background:#05101f; font-family:var(--font); }
+html{ font-size: 100%; }
+
+.responsive-container{
+  width:100vw; height:100vh; display:flex; align-items:center; justify-content:center;
+  background: radial-gradient(ellipse at 50% 30%, #142a4a 0%, #0b1d33 70%);
+  overflow:hidden;
+}
+.responsive-wrapper{
+  position:absolute; top:50%; left:50%;
+  width:1920px; height:1080px;
+  transform: translate(-50%, -50%) scale(var(--scaleFactor));
+  transform-origin: center center;
+}
+
+.applet-root{
+  width:100%; height:100%; position:relative; overflow:hidden;
+  background: radial-gradient(ellipse at 50% 30%, #1a3a5c 0%, #0d2240 60%, #091428 100%);
+  color:var(--text);
+}
+
+/* --------------------------- layout ------------------------------ */
+.screen-layout{ width:100%; height:100%; display:flex; flex-direction:column; }
+.screen-header{
+  flex:0 0 9%; display:flex; align-items:center; justify-content:center; text-align:center;
+  font-size:2.1rem; font-weight:700; color:#eaf4ff;
+  background: linear-gradient(180deg, rgba(30,72,120,.95), rgba(20,52,92,.55));
+  border-bottom:2px solid rgba(120,180,235,.25); padding:0 40px;
+}
+.screen-footer{
+  flex:0 0 7%; display:flex; align-items:center; justify-content:center; text-align:center;
+  font-size:1.85rem; font-weight:700; color:#eaf4ff;
+  background: linear-gradient(0deg, rgba(30,72,120,.95), rgba(20,52,92,.45));
+  border-top:2px solid rgba(120,180,235,.25); padding:0 40px;
+}
+.screen-main{ flex:1; display:flex; align-items:center; padding:24px 36px; gap:28px; min-height:0; }
+
+.stage-col{ flex:1; display:flex; align-items:center; justify-content:center; min-width:0; height:100%; }
+.panel-col{
+  flex:0 0 360px; height:100%; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:28px; padding:10px;
+}
+
+/* --------------------------- floor stage ------------------------- */
+.fg-wrap{ display:flex; align-items:center; justify-content:center; width:100%; height:100%; }
+.fg-stage{
+  position:relative; box-shadow:0 14px 50px rgba(0,0,0,.5); background:#0d2240;
+  /* scale the design-px stage to fill the available column nicely */
+  transform: scale(1.18); transform-origin:center center;
+}
+/* corners/edges round on the image itself (not the stage) so points sitting right on
+   the border (nx/ny at 0 or 1) keep their full target ring + dot, instead of being
+   clipped by the stage's own overflow:hidden */
+.fg-img{
+  position:absolute; inset:0; width:100%; height:100%; object-fit:fill;
+  border-radius:14px; transition: opacity .8s ease, filter .8s ease;
+}
+.fg-img--faded{ opacity:.18; filter:grayscale(.3); }
+
+/* grid overlay */
+.fg-grid{ position:absolute; inset:0; width:100%; height:100%; border-radius:14px; opacity:0; transition:opacity .8s ease; pointer-events:none; }
+.fg-grid--show{ opacity:1; }
+.fg-grid-line{ stroke: rgba(120,170,220,.55); stroke-width:1; }
+
+/* bathing-area boundary line (M -> L -> O), always visible */
+.fg-bath{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:6; overflow:visible; }
+.fg-bath-line{ fill:none; stroke:#111; stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
+
+/* target ring (active drop location) */
+.fg-target{
+  position:absolute; width:54px; height:54px; margin:-27px 0 0 -27px;
+  border-radius:50%; pointer-events:none;
+}
+.fg-target--active{
+  background: radial-gradient(circle, rgba(88,217,139,.55) 0%, rgba(88,217,139,.12) 60%, transparent 70%);
+  border:3px solid var(--green-light);
+  box-shadow:0 0 18px rgba(88,217,139,.8);
+  animation: targetPulse 1.1s ease-in-out infinite;
+}
+
+/* placed top-view marker — a beveled red dot (pushpin head seen from above) */
+.fg-dot{
+  position:absolute; width:32px; height:32px; margin:-16px 0 0 -16px; border-radius:50%;
+  pointer-events:none; z-index:12;
+  background:
+    radial-gradient(circle at 34% 30%, #ff8a8a 0%, #ef3a3a 32%, #c81616 70%, #8c0d0d 100%);
+  box-shadow:
+    0 3px 6px rgba(0,0,0,.5),
+    inset 0 2px 3px rgba(255,255,255,.55),
+    inset 0 -3px 5px rgba(0,0,0,.45);
+  border:1px solid rgba(120,0,0,.6);
+}
+.fg-dot::after{ /* glossy highlight */
+  content:''; position:absolute; left:22%; top:16%; width:34%; height:26%;
+  border-radius:50%; background: rgba(255,255,255,.7); filter: blur(1px);
+}
+/* only the just-placed / just-pulsing dot animates; older dots stay static */
+.fg-dot--enter{ animation: dotDrop .3s ease-out; }
+.fg-dot--pulse{ animation: dotPulse 1.1s ease-in-out infinite; }
+/* revealed in the grid/labeling step — dot turns green */
+.fg-dot--revealed{
+  background:
+    radial-gradient(circle at 34% 30%, #9bf0b0 0%, #4cc977 32%, #219150 70%, #0e5c30 100%);
+  border:1px solid rgba(10,70,35,.6);
+}
+
+/* pins (side-view art, used only for the draggable tray pin) */
+.pin{ user-select:none; -webkit-user-drag:none;
+  filter: drop-shadow(0 3px 4px rgba(0,0,0,.45)); }
+.pin--tray{ display:block; width:88px; height:auto; pointer-events:auto;
+  cursor:grab; touch-action:none; position:relative; z-index:20;
+  filter: drop-shadow(0 6px 8px rgba(0,0,0,.5)); }
+.pin--tray:active{ cursor:grabbing; }
+.pin--dragging{ transition:none; z-index:9999; }
+.pin--returning{ transition: transform .3s cubic-bezier(.2,.8,.3,1.2); }
+
+/* pin tray inside the panel column */
+.tray{
+  position:relative; display:flex; align-items:center; justify-content:center;
+  width:200px; height:200px; border-radius:22px;
+  background: linear-gradient(180deg, rgba(40,80,130,.55), rgba(20,48,88,.45));
+  border:2px solid rgba(135,206,235,.4); box-shadow:0 10px 30px rgba(0,0,0,.4) inset, 0 6px 18px rgba(0,0,0,.35);
+}
+/* drag-teaching cue: travels from the tray pin to the active target, looping.
+   Positioned absolute (not fixed) in the same 1920x1080 design-px space as
+   .applet-root, since .responsive-wrapper's transform:scale makes it the
+   containing block for fixed descendants too — absolute here is equivalent
+   and matches the local-space math in DragHint's bindHint(). */
+.drag-hint{
+  position:absolute; left:0; top:0; width:56px; height:56px; margin:-10px 0 0 -10px;
+  pointer-events:none; z-index:9000; opacity:0;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,.5));
+}
+
+/* tappable hotspot over a point */
+.fg-hotspot{
+  position:absolute; width:56px; height:56px; margin:-28px 0 0 -28px; border-radius:50%;
+  cursor:pointer; z-index:15; background: rgba(255,255,255,0);
+  animation: targetPulse 1.3s ease-in-out infinite;
+  box-shadow:0 0 0 2px rgba(255,255,255,.25) inset;
+}
+.fg-hotspot:hover{ background: rgba(255,255,255,.12); }
+
+/* revealed A–P label */
+.fg-label{
+  position:absolute; transform:translate(-50%,-100%); margin-top:-2px;
+  font-family:var(--font); font-weight:800; font-size:30px; color:#ffffff;
+  text-shadow:0 1px 3px rgba(0,0,0,.85); pointer-events:none; z-index:18;
+}
+/* only the just-revealed label plays the pop-in; older labels stay static */
+.fg-label--enter{ animation: labelPop .35s ease-out; }
+/* points too close to the stage's top edge would clip; anchor the label below instead */
+.fg-label--below{ transform:translate(-50%,0); margin-top:2px; }
+.fg-label--below.fg-label--enter{ animation: labelPopBelow .35s ease-out; }
+
+/* --------------------------- right panel ------------------------- */
+.panel-callout{
+  width:100%; max-width:330px; padding:20px 24px; text-align:center;
+  background: rgba(226,236,248,.97); color:#10314f; border-radius:18px;
+  font-size:1.7rem; font-weight:700; line-height:1.4;
+  box-shadow:0 8px 26px rgba(0,0,0,.35); border:2px solid rgba(140,180,225,.6);
+  animation: calloutIn .35s ease-out;
+}
+.panel-callout--good{
+  background: linear-gradient(180deg, #7fce86, #5bb364); color:#073312;
+  border-color:#bdf0c4;
+}
+
+.grid-btn{
+  padding:18px 64px; font-family:var(--font); font-size:2.6rem; font-weight:800;
+  color:#3a2300; border:none; border-radius:18px; cursor:pointer;
+  background: linear-gradient(180deg, #ffc14a, #ff9a1a); box-shadow:0 7px 0 rgba(0,0,0,.3);
+  animation: pulseGlow 1.6s ease-in-out infinite;
+}
+.grid-btn:hover{ filter:brightness(1.06); }
+
+.explore-again{
+  padding:14px 36px; font-family:var(--font); font-size:1.6rem; font-weight:700;
+  color:#06280f; border:none; border-radius:40px; cursor:pointer;
+  background: linear-gradient(180deg, var(--green-light), var(--green)); box-shadow:0 6px 0 rgba(0,0,0,.3);
+}
+.explore-again:hover{ filter:brightness(1.08); }
+
+/* --------------------------- keyframes --------------------------- */
+@keyframes pulseGlow{ 0%,100%{ box-shadow:0 7px 0 rgba(0,0,0,.3), 0 0 0 rgba(255,180,60,0); } 50%{ box-shadow:0 7px 0 rgba(0,0,0,.3), 0 0 30px rgba(255,180,60,.75); } }
+@keyframes targetPulse{ 0%,100%{ transform:scale(1); opacity:1; } 50%{ transform:scale(1.18); opacity:.65; } }
+@keyframes dotPulse{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.25); } }
+@keyframes dotDrop{ 0%{ transform:scale(.3); opacity:.2; } 70%{ transform:scale(1.15); opacity:1; } 100%{ transform:scale(1); opacity:1; } }
+@keyframes labelPop{ 0%{ opacity:0; transform:translate(-50%,-100%) scale(.6); } 100%{ opacity:1; transform:translate(-50%,-100%) scale(1); } }
+@keyframes labelPopBelow{ 0%{ opacity:0; transform:translate(-50%,0) scale(.6); } 100%{ opacity:1; transform:translate(-50%,0) scale(1); } }
+@keyframes calloutIn{ 0%{ opacity:0; transform:translateY(-8px) scale(.96); } 100%{ opacity:1; transform:translateY(0) scale(1); } }
