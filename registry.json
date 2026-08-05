@@ -1,5 +1,21 @@
 [
   {
+    "slug": "data-handling",
+    "title": "Representing Data Using Pictographs and Bar Graphs",
+    "description": "Build a vertical and horizontal pictograph and a bar graph from a vehicle frequency table — drag pictures and bars to match the data, then choose the correct titles.",
+    "category": "Mathematics",
+    "grade": "Class 5",
+    "tags": [
+      "data-handling",
+      "pictograph",
+      "bar-graph",
+      "drag-and-drop"
+    ],
+    "status": "published",
+    "demoUrl": "/data-handling/",
+    "thumbnail": "/thumbs/data-handling.png"
+  },
+  {
     "slug": "light-grade5",
     "title": "Light and Its Properties",
     "description": "Explore how light helps us see, identify luminous and non-luminous objects, and investigate how light travels, passes through materials, and forms shadows.",
