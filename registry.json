@@ -2,7 +2,7 @@
   {
     "slug": "data-handling",
     "title": "Representing Data Using Pictographs and Bar Graphs",
-    "description": "Build a vertical and horizontal pictograph and a bar graph from a vehicle frequency table — drag pictures and bars to match the data, then choose the correct titles.",
+    "description": "Build a vertical and horizontal pictograph and a bar graph from a vehicle frequency table \u2014 drag pictures and bars to match the data, then choose the correct titles.",
     "category": "Mathematics",
     "grade": "Class 5",
     "tags": [
@@ -35,7 +35,7 @@
   {
     "slug": "comparing-decimals",
     "title": "Comparing Decimal Numbers",
-    "description": "Drag and drop to compare decimals using place value — students build intuition for number magnitude through hands-on manipulation.",
+    "description": "Drag and drop to compare decimals using place value \u2014 students build intuition for number magnitude through hands-on manipulation.",
     "category": "Mathematics",
     "grade": "G4-G5",
     "tags": [
@@ -50,7 +50,7 @@
   {
     "slug": "parallel-series-circuits",
     "title": "Parallel & Series Circuits",
-    "description": "Add and remove bulbs to explore how brightness changes in parallel vs series circuits — misconception-busting physics made tangible.",
+    "description": "Add and remove bulbs to explore how brightness changes in parallel vs series circuits \u2014 misconception-busting physics made tangible.",
     "category": "Physics",
     "grade": "G6-G8",
     "tags": [
@@ -65,7 +65,7 @@
   {
     "slug": "biology-lab",
     "title": "Biology Lab Safety: Spot the Contamination Risks",
-    "description": "Identify three contamination risks in a lab setup to prevent sample integrity issues — interactive risk assessment through visual inspection and feedback.",
+    "description": "Identify three contamination risks in a lab setup to prevent sample integrity issues \u2014 interactive risk assessment through visual inspection and feedback.",
     "category": "Biology",
     "grade": "G9-G12",
     "tags": [
@@ -81,7 +81,7 @@
   {
     "slug": "equivalent-fractions",
     "title": "Equivalent Fractions: Clay Block Exploration",
-    "description": "Divide clay blocks into equal parts and discover that different fractions can represent the same value — hands-on visual learning of fraction equivalence.",
+    "description": "Divide clay blocks into equal parts and discover that different fractions can represent the same value \u2014 hands-on visual learning of fraction equivalence.",
     "category": "Mathematics",
     "grade": "G4-G6",
     "tags": [
@@ -97,7 +97,7 @@
   {
     "slug": "comparing-fractions",
     "title": "Comparing Fractions Visually",
-    "description": "Use chocolate-bar models to compare fractions side by side — students build intuition for fraction size through hands-on visual manipulation.",
+    "description": "Use chocolate-bar models to compare fractions side by side \u2014 students build intuition for fraction size through hands-on visual manipulation.",
     "category": "Mathematics",
     "grade": "G3-G5",
     "tags": [
@@ -111,7 +111,7 @@
   },
   {
     "slug": "cbse-digital-book",
-    "title": "Fractions – Interactive Digital Book",
+    "title": "Fractions \u2013 Interactive Digital Book",
     "description": "A page-flip digital book covering CBSE Class 5 fractions, with embedded hotspots that open the Comparing Fractions and Chocolate Fractions applets directly from the relevant pages.",
     "category": "Mathematics",
     "grade": "Class 5",
@@ -128,7 +128,7 @@
   },
   {
     "slug": "cbse-surface-area",
-    "title": "Surface Area of a Cylinder – Interactive Digital Book",
+    "title": "Surface Area of a Cylinder \u2013 Interactive Digital Book",
     "description": "A page-flip digital book covering CBSE Class 8 surface area of cylinders, with an embedded interactive applet that lets students explore the net of a cylinder and derive the formula step by step.",
     "category": "Mathematics",
     "grade": "Class 8",
@@ -146,8 +146,8 @@
   },
   {
     "slug": "chocolate-fractions",
-    "title": "Boojho's Chocolate Sharing – Equivalent Fractions",
-    "description": "Step-by-step visual exploration where students shade and split chocolate-bar wholes to discover that 1/2 = 2/4 and 1/3 = 2/6 — building a concrete understanding of equivalent fractions through guided interaction.",
+    "title": "Boojho's Chocolate Sharing \u2013 Equivalent Fractions",
+    "description": "Step-by-step visual exploration where students shade and split chocolate-bar wholes to discover that 1/2 = 2/4 and 1/3 = 2/6 \u2014 building a concrete understanding of equivalent fractions through guided interaction.",
     "category": "Mathematics",
     "grade": "Class 5",
     "tags": [
@@ -163,7 +163,7 @@
   {
     "slug": "modifiers",
     "title": "Modifiers: Word, Phrase or Clause?",
-    "description": "Drag \"only\" through a sentence to see one word change its meaning, then classify modifiers as a word, phrase, or clause across ten practice sentences — built for UPSC and competitive-exam English grammar.",
+    "description": "Drag \"only\" through a sentence to see one word change its meaning, then classify modifiers as a word, phrase, or clause across ten practice sentences \u2014 built for UPSC and competitive-exam English grammar.",
     "category": "English",
     "grade": "UPSC / Competitive Exams",
     "tags": [
@@ -180,7 +180,7 @@
   {
     "slug": "misplaced-modifiers",
     "title": "Misplaced Modifiers",
-    "description": "Choose what \"almost\" should modify, then drag misplaced modifiers next to the word they actually describe across eight practice sentences — built for UPSC and competitive-exam English grammar.",
+    "description": "Choose what \"almost\" should modify, then drag misplaced modifiers next to the word they actually describe across eight practice sentences \u2014 built for UPSC and competitive-exam English grammar.",
     "category": "English",
     "grade": "UPSC / Competitive Exams",
     "tags": [
@@ -197,7 +197,7 @@
   },
   {
     "slug": "modifiers-digital-book",
-    "title": "Modifiers – Interactive Digital Book",
+    "title": "Modifiers \u2013 Interactive Digital Book",
     "description": "A page-flip digital book covering Chapter 1 of the UPSC Grammar Blueprint, with embedded hotspots that open the Modifiers and Misplaced Modifiers applets directly from the relevant pages.",
     "category": "English",
     "grade": "UPSC / Competitive Exams",
@@ -216,8 +216,8 @@
   },
   {
     "slug": "coordinates-floor-plan",
-    "title": "Orienting Yourself – Locating Points on a Floor Plan",
-    "description": "Students drag pins onto a floor plan of a room, then watch the marked positions resolve into a labelled grid — building the intuition that a grid lets us describe any location with numbers.",
+    "title": "Orienting Yourself \u2013 Locating Points on a Floor Plan",
+    "description": "Students drag pins onto a floor plan of a room, then watch the marked positions resolve into a labelled grid \u2014 building the intuition that a grid lets us describe any location with numbers.",
     "category": "Mathematics",
     "grade": "Class 9",
     "tags": [
@@ -270,7 +270,7 @@
   {
     "slug": "coordinates-quadrants",
     "title": "Quadrants of the Cartesian Plane",
-    "description": "Build the plane axis by axis, discover the four quadrants and their anti-clockwise numbering, then plot points by dragging — learning the sign pattern of each quadrant by doing.",
+    "description": "Build the plane axis by axis, discover the four quadrants and their anti-clockwise numbering, then plot points by dragging \u2014 learning the sign pattern of each quadrant by doing.",
     "category": "Mathematics",
     "grade": "Class 9",
     "tags": [
@@ -287,7 +287,7 @@
   },
   {
     "slug": "coordinates-distance-formula",
-    "title": "The Distance Formula – Pythagoras in Coordinates",
+    "title": "The Distance Formula \u2013 Pythagoras in Coordinates",
     "description": "Starting from horizontal and vertical distances, students build a right triangle on a slanted segment and derive the distance formula as Pythagoras' theorem written in coordinates.",
     "category": "Mathematics",
     "grade": "Class 9",
@@ -304,7 +304,7 @@
   },
   {
     "slug": "coordinates-digital-book",
-    "title": "Orienting Yourself: The Use of Coordinates – Interactive Digital Book",
+    "title": "Orienting Yourself: The Use of Coordinates \u2013 Interactive Digital Book",
     "description": "A page-flip digital book covering CBSE Class 9 Chapter 1, with embedded hotspots that open the five coordinate geometry applets directly from the relevant figures.",
     "category": "Mathematics",
     "grade": "Class 9",
@@ -319,5 +319,22 @@
     "status": "unlisted",
     "demoUrl": "/coordinates-digital-book/",
     "thumbnail": "/thumbs/coordinates-digital-book.png"
+  },
+  {
+    "slug": "animal-cell",
+    "title": "Inside the Animal Cell",
+    "description": "A superimposed 3D animal cell \u2014 click any organelle (nucleus, mitochondria, ER, Golgi, lysosome, membrane) to bring it forward and learn what it does.",
+    "category": "Science",
+    "grade": "G6-G8",
+    "tags": [
+      "biology",
+      "cell",
+      "3d",
+      "organelles",
+      "science"
+    ],
+    "status": "published",
+    "demoUrl": "/animal-cell/",
+    "thumbnail": "/thumbs/animal-cell.png"
   }
 ]
