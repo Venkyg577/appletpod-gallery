@@ -336,5 +336,23 @@
     "status": "published",
     "demoUrl": "/animal-cell/",
     "thumbnail": "/thumbs/animal-cell.png"
+  },
+  {
+    "slug": "orbital-practice",
+    "title": "Interactive Periodic Table \u2014 Periods, Groups, Blocks & Element Types",
+    "description": "A guided walkthrough of the periodic table: highlight period rows and group columns, tap any element to reveal its period and group, then explore the s, p, d and f blocks and all ten element types.",
+    "category": "Chemistry",
+    "grade": "G9-G12",
+    "tags": [
+      "periodic-table",
+      "periods",
+      "groups",
+      "blocks",
+      "element-types",
+      "guided-flow"
+    ],
+    "status": "published",
+    "demoUrl": "/orbital-practice/",
+    "thumbnail": "/thumbs/orbital-practice.png"
   }
 ]
