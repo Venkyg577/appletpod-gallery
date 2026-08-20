@@ -96,6 +96,7 @@ export function initContentFlow(tableContainer, { onComplete } = {}) {
 
   let currentAxis = null;
   let currentAxisValue = null;
+  let currentElement = null;
 
   // Measures a representative cell per row/column using layout coordinates
   // (offsetLeft/offsetTop), which ignore the table's CSS scale transform.
@@ -222,8 +223,10 @@ export function initContentFlow(tableContainer, { onComplete } = {}) {
     const be = tableContainer.querySelector('.element[data-element-number="4"]');
     const b = tableContainer.querySelector('.element[data-element-number="5"]');
     const li = tableContainer.querySelector('.element[data-element-number="3"]');
-    const mg = tableContainer.querySelector('.element[data-element-number="12"]');
-    if (!be || !b || !li || !mg) return;
+    // Sc (row 4) is the last row before the d-block fills the gap, so the
+    // panel can claim rows 2-3 plus the empty space above Sc.
+    const sc = tableContainer.querySelector('.element[data-element-number="21"]');
+    if (!be || !b || !li || !sc) return;
 
     const gapLeft = be.getBoundingClientRect().right;
     const gapRight = b.getBoundingClientRect().left;
@@ -235,14 +238,20 @@ export function initContentFlow(tableContainer, { onComplete } = {}) {
       return;
     }
 
-    const top = li.getBoundingClientRect().top;
-    const bottom = mg.getBoundingClientRect().bottom;
+    // Start just under the Period/Group heading rather than at row 2, so the
+    // card sits higher in the gap and gains vertical room.
+    const barBottom = modeBar.getBoundingClientRect().bottom;
+    const top = Math.max(barBottom + 10, li.getBoundingClientRect().top - 34);
+    const bottom = sc.getBoundingClientRect().top - 8;
 
     const inset = 14;
     panel.style.left = `${gapLeft + inset}px`;
     panel.style.width = `${gapWidth - inset * 2}px`;
     panel.style.top = `${top}px`;
-    panel.style.height = `${bottom - top}px`;
+    // Cap the height at the gap, but let a light screen (nav row only) shrink
+    // to its content instead of reserving a tall empty card.
+    panel.style.height = "auto";
+    panel.style.maxHeight = `${bottom - top}px`;
     panel.style.right = "auto";
     panel.style.bottom = "auto";
     panel.dataset.anchored = "true";
@@ -250,14 +259,25 @@ export function initContentFlow(tableContainer, { onComplete } = {}) {
 
   // Cell geometry changes when the table rescales; re-measure the annotations.
   function refreshAxis() {
-    if (currentAxis) setAxis(currentAxis, { highlightValue: currentAxisValue });
-    else positionPanel();
+    if (!currentAxis) {
+      positionPanel();
+      return;
+    }
+    // On element screens the selection is an element, not an axis value —
+    // re-applying a stale axis value would highlight the wrong row/column.
+    if (currentAxis === "both" && currentElement !== null) {
+      setAxis(currentAxis);
+      showElementInfo(currentElement);
+    } else {
+      setAxis(currentAxis, { highlightValue: currentAxisValue });
+    }
   }
   const onResize = () => refreshAxis();
   window.addEventListener("resize", onResize);
 
   function selectAxisValue(axis, value) {
     currentAxisValue = value;
+    currentElement = null;
     axisLayer.querySelectorAll(".cf-axis-mark, .cf-axis-line").forEach((el) => {
       el.classList.toggle("selected", Number(el.dataset.value) === value);
     });
@@ -269,6 +289,7 @@ export function initContentFlow(tableContainer, { onComplete } = {}) {
   function showElementInfo(number) {
     const element = elements.find((e) => e.number === number);
     if (!element) return;
+    currentElement = number;
     highlightElementCell(tableContainer, number);
 
     // Mark the element's own period row and group column green against the
@@ -294,6 +315,7 @@ export function initContentFlow(tableContainer, { onComplete } = {}) {
   function applyHighlight(highlight) {
     clearTableHighlights(tableContainer);
     infoEl.hidden = true;
+    infoEl.innerHTML = "";
     if (!highlight) return;
     const { type, value } = highlight;
     if (type === "period" || type === "group") selectAxisValue(type, value);
@@ -341,6 +363,12 @@ export function initContentFlow(tableContainer, { onComplete } = {}) {
     caption.hidden = !screen.caption;
     progressEl.textContent = `${index + 1} / ${CONTENT_FLOW_SCREENS.length}`;
 
+    // Drop any element card carried over from a previous screen.
+    infoEl.hidden = true;
+    infoEl.innerHTML = "";
+    currentElement = null;
+    currentAxisValue = null;
+
     // Axis annotations follow the screen's section. Element screens show both
     // legends at once, dotted, per the source slides.
     const isElementScreen =
@@ -367,7 +395,7 @@ export function initContentFlow(tableContainer, { onComplete } = {}) {
     positionPanel();
     requestAnimationFrame(() => {
       if (destroyed) return;
-      if (currentAxis) setAxis(currentAxis, { highlightValue: currentAxisValue });
+      refreshAxis();
       positionPanel();
     });
 
